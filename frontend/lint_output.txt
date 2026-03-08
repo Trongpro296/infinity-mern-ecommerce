@@ -1,0 +1,232 @@
+
+> fontend@0.0.0 lint
+> eslint .
+
+
+D:\Project\INIFINITY\fontend\src\App.jsx
+  15:26  error  'toast' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Project\INIFINITY\fontend\src\assets\assets.js
+  32:8  error  'p_img29' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  33:8  error  'p_img30' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  34:8  error  'p_img31' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  35:8  error  'p_img32' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  36:8  error  'p_img33' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  37:8  error  'p_img34' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  38:8  error  'p_img35' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  39:8  error  'p_img36' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  40:8  error  'p_img37' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  41:8  error  'p_img38' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  42:8  error  'p_img39' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  43:8  error  'p_img40' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  44:8  error  'p_img41' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  45:8  error  'p_img42' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  46:8  error  'p_img43' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  47:8  error  'p_img44' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  48:8  error  'p_img45' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  49:8  error  'p_img46' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  50:8  error  'p_img47' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  51:8  error  'p_img48' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  52:8  error  'p_img49' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  53:8  error  'p_img50' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  54:8  error  'p_img51' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  55:8  error  'p_img52' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Project\INIFINITY\fontend\src\components\BestSeller.jsx
+  13:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  11 |   useEffect(() => {
+  12 |     const bestProduct = products.filter((item) => (item.bestseller));
+> 13 |     setBestSeller(bestProduct.slice(0, 5))
+     |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  14 |   }, [products])
+  15 |   return (
+  16 |     <div className='my-10'>  react-hooks/set-state-in-effect
+
+D:\Project\INIFINITY\fontend\src\components\ProductItem.jsx
+  8:11  error  'currency' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Project\INIFINITY\fontend\src\components\RelatedProduct.jsx
+  18:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  16 |       productsCopy = productsCopy.filter((item) => subCategory === item.subCategory);
+  17 |
+> 18 |       setRelated(productsCopy.slice(0, 5))
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  19 |     }
+  20 |   }, [])
+  21 |  react-hooks/set-state-in-effect
+  20:6  warning  React Hook useEffect has missing dependencies: 'category', 'products', and 'subCategory'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/exhaustive-deps
+
+D:\Project\INIFINITY\fontend\src\components\SearchBar.jsx
+  14:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  12 |   useEffect(() => {
+  13 |     if (location.pathname.includes('collection')) {
+> 14 |       setVisible(true);
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  15 |     }
+  16 |     else {
+  17 |       setVisible(false);  react-hooks/set-state-in-effect
+
+D:\Project\INIFINITY\fontend\src\context\ShopContext.jsx
+    6:14  error    Fast refresh only works when a file only exports components. Move your React context(s) to a separate file                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           react-refresh/only-export-components
+   79:18  error    'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+   79:25  error    Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                no-empty
+  114:18  error    'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+  114:25  error    Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                no-empty
+  150:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  148 |
+  149 |   useEffect(() => {
+> 150 |     getProducts();
+      |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  151 |   }, [])
+  152 |
+  153 |   useEffect(() => {                                                                                                                    react-hooks/set-state-in-effect
+  151:6   warning  React Hook useEffect has a missing dependency: 'getProducts'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
+  155:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  153 |   useEffect(() => {
+  154 |     if (!token && localStorage.getItem('token')) {
+> 155 |       setToken(localStorage.getItem('token'));
+      |       ^^^^^^^^ Avoid calling setState() directly within an effect
+  156 |       getUserCart(localStorage.getItem('token'));
+  157 |     }
+  158 |   }, [])  react-hooks/set-state-in-effect
+  158:6   warning  React Hook useEffect has missing dependencies: 'getUserCart' and 'token'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+
+D:\Project\INIFINITY\fontend\src\main.jsx
+  2:10  error  'createRoot' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Project\INIFINITY\fontend\src\pages\Cart.jsx
+  29:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  27 |         }
+  28 |       }
+> 29 |       setCartData(tempData);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  30 |     }
+  31 |   }, [cartItems, products])
+  32 |   return (  react-hooks/set-state-in-effect
+
+D:\Project\INIFINITY\fontend\src\pages\Collection.jsx
+  77:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  75 |
+  76 |   useEffect(() => {
+> 77 |     setFilterProducts(products);
+     |     ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  78 |   }, [])
+  79 |
+  80 |   useEffect(() => {                                                            react-hooks/set-state-in-effect
+  78:6  warning  React Hook useEffect has a missing dependency: 'products'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/exhaustive-deps
+  81:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  79 |
+  80 |   useEffect(() => {
+> 81 |     applyFilter();
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  82 |   }, [category, subCategory, search, showSearch, products])
+  83 |
+  84 |   useEffect(() => {                             react-hooks/set-state-in-effect
+  82:6  warning  React Hook useEffect has a missing dependency: 'applyFilter'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+  85:5  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  83 |
+  84 |   useEffect(() => {
+> 85 |     sortProduct();
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  86 |   }, [sortType])
+  87 |   return (
+  88 |     <div className='flex flex-col sm:flex-row gap-1 sm:gap-10 pt-10 border-t'>  react-hooks/set-state-in-effect
+  86:6  warning  React Hook useEffect has a missing dependency: 'sortProduct'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+
+D:\Project\INIFINITY\fontend\src\pages\Login.jsx
+  51:6  warning  React Hook useEffect has a missing dependency: 'navigate'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\Project\INIFINITY\fontend\src\pages\Orders.jsx
+   9:30  error    'products' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+  27:14  error    'error' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+  27:21  error    Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-empty
+  33:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  31 |
+  32 |   useEffect(() => {
+> 33 |     loadOrderData();
+     |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  34 |   }, [token])
+  35 |
+  36 |   return (  react-hooks/set-state-in-effect
+  34:6   warning  React Hook useEffect has a missing dependency: 'loadOrderData'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+
+D:\Project\INIFINITY\fontend\src\pages\PlaceOrder.jsx
+   4:10  error  'assets' is defined but never used. Allowed unused vars must match /^[A-Z_]/u             no-unused-vars
+  12:79  error  'currency' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  60:11  error  Unexpected lexical declaration in case block                                              no-case-declarations
+
+D:\Project\INIFINITY\fontend\src\pages\Product.jsx
+  28:6  warning  React Hook useEffect has a missing dependency: 'fetchProductData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 57 problems (48 errors, 9 warnings)
+
