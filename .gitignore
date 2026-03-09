@@ -11,6 +11,9 @@ backend/.env
 frontend/.env
 admin/.env
 
+# Bỏ qua thư mục agent
+.agent/
+
 # Bỏ qua các file logs và hệ thống
 npm-debug.log*
 .DS_Store
