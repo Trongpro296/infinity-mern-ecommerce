@@ -11,9 +11,10 @@ const createToken = (id) => {
 //Route for user login
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     const user = await userModel.findOne({ email });
+
     if (!user) {
       return res.json({ success: false, message: "User doesn't exists" });
     }
@@ -30,17 +31,18 @@ const loginUser = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    res.json({ success: false, message: e.message });
+    res.json({ success: false, message: error.message });
   }
 };
 
 //Route for user register
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password } = req.body || {};
 
     // checking user already exist or not
     const exists = await userModel.findOne({ email });
+
     if (exists) {
       return res.json({ success: false, message: "User already exists" });
     }
@@ -72,14 +74,14 @@ const registerUser = async (req, res) => {
 
   } catch (error) {
     console.log(error);
-    res.json({ success: false, message: e.message });
+    res.json({ success: false, message: error.message });
   }
 };
 
 //Route for Admin login
 const adminLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
       const token = jwt.sign(email + password, process.env.JWT_SECRET);
@@ -93,4 +95,39 @@ const adminLogin = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, adminLogin };
+// Route for Admin to get all users
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await userModel.find({}).select("-password");
+    res.json({ success: true, users });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Route for Admin to update user status
+const updateUserStatus = async (req, res) => {
+  try {
+    const { userId, status } = req.body;
+    await userModel.findByIdAndUpdate(userId, { status });
+    res.json({ success: true, message: "User status updated" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Route for Admin to delete user
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    await userModel.findByIdAndDelete(userId);
+    res.json({ success: true, message: "User deleted" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export { registerUser, loginUser, adminLogin, getAllUsers, updateUserStatus, deleteUser };

@@ -12,6 +12,14 @@ const authUser = async (req, res, next) => {
   try {
 
     const token_decode = jwt.verify(token, process.env.JWT_SECRET)
+    
+    // Check if user is blocked
+    const user = await userModel.findById(token_decode.id);
+    if (user && user.status === 'Blocked') {
+      return res.json({ success: false, message: 'Not Authorized. Your account is blocked.' });
+    }
+
+    if (!req.body) req.body = {};
     req.body.userId = token_decode.id;
     next();
 

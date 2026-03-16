@@ -63,7 +63,7 @@ const Orders = () => {
               <div className='flex flex-col gap-3 mt-2 bg-gray-50 p-4 rounded'>
                 {order.items.map((item, itemIndex) => (
                   <div key={itemIndex} className='flex items-start gap-4 text-sm pb-3 border-b border-gray-200 last:border-0 last:pb-0'>
-                    <img className='w-12 sm:w-16 rounded object-cover' src={item.image[0]} alt="" />
+                    <img className='w-12 sm:w-16 rounded object-cover' src={item.image?.[0]} alt="" />
                     <div className='flex-1'>
                       <p className='sm:text-base font-medium'>{item.name}</p>
                       <div className='flex items-center gap-4 mt-1 text-sm text-gray-600'>

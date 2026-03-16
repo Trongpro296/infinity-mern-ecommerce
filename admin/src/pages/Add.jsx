@@ -143,7 +143,7 @@ const Add = ({ token }) => {
       formData.append("price", price);
       formData.append("category", category);
       formData.append("subCategory", subCategory);
-      formData.append("bestseller", bestseller);
+      formData.append("bestSeller", bestseller);
       const orderedSizes = ["S", "M", "L", "XL", "XXL"];
       const sortedSizes = [...sizes].sort((a, b) => orderedSizes.indexOf(a) - orderedSizes.indexOf(b));
 

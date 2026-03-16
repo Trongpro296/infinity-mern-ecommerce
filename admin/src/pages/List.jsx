@@ -42,6 +42,39 @@ const List = ({ token }) => {
     }
   };
 
+  const restockProduct = async (id, name, size) => {
+    const promptMsg = size
+      ? `Nhập số lượng hàng cần bổ sung cho size ${size} của sản phẩm "${name}":`
+      : `Nhập số lượng hàng cần bổ sung cho sản phẩm "${name}":`;
+
+    const quantityStr = prompt(promptMsg, "10");
+    if (!quantityStr) return; // User cancelled
+
+    const addedQuantity = parseInt(quantityStr, 10);
+    if (isNaN(addedQuantity) || addedQuantity <= 0) {
+      toast.error("Vui lòng nhập một số lượng hợp lệ lớn hơn 0");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        backendUrl + "/api/product/update-stock",
+        { id, size, addedQuantity },
+        { headers: { token } }
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        await fetchList();
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+    }
+  };
+
   useEffect(() => {
     fetchList();
   }, []);
@@ -92,13 +125,21 @@ const List = ({ token }) => {
               <p>
                 {formatPrice(item.price)}
               </p>
-              <p>
-                {activeSize ? <span className="font-semibold text-pink-600 mr-1">({activeSize})</span> : ''}
-                {currentStock} - {currentStock > 0 ? "Còn hàng" : "Hết hàng"}
-              </p>
+              <div className="flex flex-col items-start gap-1">
+                <p>
+                  {activeSize ? <span className="font-semibold text-pink-600 mr-1">({activeSize})</span> : ''}
+                  {currentStock} - {currentStock > 0 ? "In stock" : "Out of stock"}
+                </p>
+                <button
+                  onClick={() => restockProduct(item._id, item.name, activeSize)}
+                  className="bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 text-xs px-2 py-1 flex items-center gap-1 rounded border border-blue-200 transition-colors"
+                >
+                  <span>+</span> Restock
+                </button>
+              </div>
               <p
                 onClick={() => removeProduct(item._id)}
-                className="text-right md:text-center cursor-pointer text-lg"
+                className="text-right md:text-center cursor-pointer text-lg text-red-500 hover:text-red-700 font-bold"
               >
                 X
               </p>

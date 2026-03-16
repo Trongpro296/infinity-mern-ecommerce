@@ -38,14 +38,14 @@ const addProduct = async (req, res) => {
       category,
       price: Number(price),
       subCategory,
-      bestseller: bestSeller === 'true' ? true : false,
+      bestSeller: bestSeller === 'true' ? true : false,
       sizes: parsedSizes,
       sizesStock: sizesStock,
       quantity: parsedQuantity,
       image: imageUrl,
       date: Date.now(),
     };
-    console.log(productData);
+
 
     const product = new productModel(productData);
     await product.save();
@@ -91,4 +91,41 @@ const singleProduct = async (req, res) => {
     res.json({ success: false, message: e.message });
   }
 };
-export { addProduct, listProduct, removeProduct, singleProduct };
+
+// function to restock/update product stock
+const updateStock = async (req, res) => {
+  try {
+    const { id, size, addedQuantity } = req.body;
+    
+    if (!id || !addedQuantity || isNaN(addedQuantity) || addedQuantity <= 0) {
+      return res.json({ success: false, message: "Invalid parameters for restocking" });
+    }
+
+    const product = await productModel.findById(id);
+    if (!product) {
+       return res.json({ success: false, message: "Product not found" });
+    }
+
+    // Update size-specific stock if size is provided
+    if (size) {
+      if (!product.sizesStock) {
+        product.sizesStock = {};
+      }
+      product.sizesStock[size] = (product.sizesStock[size] || 0) + Number(addedQuantity);
+      product.markModified('sizesStock');
+    } else {
+      // Update general quantity if no size
+      product.quantity = (product.quantity || 0) + Number(addedQuantity);
+    }
+    
+    await product.save();
+
+    res.json({ success: true, message: "Stock replenished successfully", product });
+
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+}
+
+export { addProduct, listProduct, removeProduct, singleProduct, updateStock };

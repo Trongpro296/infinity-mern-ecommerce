@@ -9,7 +9,7 @@ import axios from 'axios';
 const PlaceOrder = () => {
 
   const [method, setMethod] = useState('cod');
-  const { navigate, backendUrl, token, cartItems, setCartItem, getCartAmount, delivery_fee, products } = useContext(ShopContext);
+  const { navigate, backendUrl, token, cartItems, setCartItem, getCartAmount, delivery_fee, products, discountPercent, appliedVoucher, setAppliedVoucher, setDiscountPercent } = useContext(ShopContext);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -47,10 +47,15 @@ const PlaceOrder = () => {
         }
       }
 
+      const cartAmount = getCartAmount();
+      const discountAmount = (cartAmount * discountPercent) / 100;
+      const finalAmount = cartAmount === 0 ? 0 : cartAmount - discountAmount + delivery_fee;
+
       let orderData = {
         address: formData,
         items: orderItems,
-        amount: getCartAmount() + delivery_fee
+        amount: finalAmount,
+        appliedVoucher: appliedVoucher || null
       }
 
       switch (method) {
@@ -60,6 +65,8 @@ const PlaceOrder = () => {
           const response = await axios.post(backendUrl + '/api/order/place', orderData, { headers: { token } })
           if (response.data.success) {
             setCartItem({})
+            setAppliedVoucher('')
+            setDiscountPercent(0)
             navigate('/orders')
           }
           else {
@@ -100,7 +107,7 @@ const PlaceOrder = () => {
       {/* Right Side */}
       <div className='mt-8'>
         <div className='mt-8 min-w-80'>
-          <CartTotal />
+          <CartTotal showVoucher={true} />
         </div>
 
         <div className='mt-12'>
