@@ -1,12 +1,23 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import productModel from "../models/productModel.js";
+import newsletterModel from "../models/newsletterModel.js";
+
+// Voucher config — thêm các mã khác ở đây khi cần
+const VOUCHERS = {
+  BARCA20: { discountPercent: 20, requiresNewsletter: true },
+};
 
 
 // PLACING ORDERS USING COD
 const placeOrder = async (req, res) => {
   try {
-    const { userId, items, amount, address, appliedVoucher } = req.body;
+    const { userId, items, address, appliedVoucher } = req.body;
+
+    // [M-5] Validate cart không rỗng
+    if (!items || items.length === 0) {
+      return res.json({ success: false, message: "Giỏ hàng trống." });
+    }
 
     // Check voucher validity
     let user;
@@ -17,36 +28,66 @@ const placeOrder = async (req, res) => {
       }
     }
 
-    // Check availability
+    // Validate stock & attach real price/image from DB
     for (const item of items) {
       const productData = await productModel.findById(item._id);
-      if (productData) {
-        // Automatically attach image if not provided by client (Postman/API testing)
-        if (!item.image) {
-          item.image = productData.image;
-        }
+      if (!productData) {
+        return res.json({ success: false, message: `Sản phẩm không tồn tại.` });
+      }
 
-        const currentStock = productData.sizesStock && productData.sizesStock[item.size] !== undefined
-          ? productData.sizesStock[item.size]
-          : productData.quantity;
+      // Use price from DB — ignore any price sent by client
+      item.price = productData.price;
+      if (!item.image) item.image = productData.image;
 
-        if (currentStock < item.quantity) {
-          return res.json({ success: false, message: `Sản phẩm ${item.name} size ${item.size} không đủ trong kho.` });
-        }
+      const currentStock = productData.sizesStock && productData.sizesStock[item.size] !== undefined
+        ? productData.sizesStock[item.size]
+        : productData.quantity;
+
+      if (currentStock < item.quantity) {
+        return res.json({ success: false, message: `Sản phẩm ${productData.name} size ${item.size} không đủ trong kho.` });
       }
     }
 
-    // Deduct stock
+    // Calculate amount server-side
+    let amount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    // [M-4] Apply voucher discount server-side dùng VOUCHERS config
+    if (appliedVoucher && VOUCHERS[appliedVoucher]) {
+      if (!user) user = await userModel.findById(userId);
+      const voucherConfig = VOUCHERS[appliedVoucher];
+
+      let isValid = !user.usedVouchers.includes(appliedVoucher);
+      if (isValid && voucherConfig.requiresNewsletter) {
+        const subscription = await newsletterModel.findOne({ userId });
+        isValid = !!subscription;
+      }
+
+      if (isValid) {
+        amount = Math.round(amount * (1 - voucherConfig.discountPercent / 100));
+      } else {
+        return res.json({ success: false, message: "Mã giảm giá không hợp lệ hoặc đã được sử dụng." });
+      }
+    } else if (appliedVoucher) {
+      return res.json({ success: false, message: "Mã giảm giá không tồn tại." });
+    }
+
+    // [C-5] Atomic stock deduction — tránh race condition, không fetch product 2 lần
     for (const item of items) {
-      const productData = await productModel.findById(item._id);
-      if (productData) {
-        if (productData.sizesStock && productData.sizesStock[item.size] !== undefined) {
-          productData.sizesStock[item.size] -= item.quantity;
-          productData.markModified('sizesStock');
-        } else {
-          productData.quantity -= item.quantity;
+      // Thử deduct sizesStock trước
+      const updatedBySizeStock = await productModel.findOneAndUpdate(
+        { _id: item._id, [`sizesStock.${item.size}`]: { $gte: item.quantity } },
+        { $inc: { [`sizesStock.${item.size}`]: -item.quantity } }
+      );
+
+      // Nếu không có sizesStock, deduct quantity chung
+      if (!updatedBySizeStock) {
+        const updatedByQty = await productModel.findOneAndUpdate(
+          { _id: item._id, quantity: { $gte: item.quantity } },
+          { $inc: { quantity: -item.quantity } }
+        );
+        if (!updatedByQty) {
+          return res.json({ success: false, message: `Sản phẩm hết hàng hoặc không đủ số lượng.` });
         }
-        await productData.save();
       }
     }
 
@@ -63,7 +104,7 @@ const placeOrder = async (req, res) => {
     const newOrder = new orderModel(orderData);
     await newOrder.save();
 
-    // Mark voucher as used if provided
+    // Mark voucher as used + clear cart
     let updateQuery = { cartData: {} };
     if (appliedVoucher && user) {
       updateQuery.$push = { usedVouchers: appliedVoucher };
@@ -71,8 +112,7 @@ const placeOrder = async (req, res) => {
 
     await userModel.findByIdAndUpdate(userId, updateQuery);
 
-    console.log(orderData);
-    res.json({ success: true, message: "Order Placed" });
+    res.json({ success: true, message: "Order Placed", amount });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -84,8 +124,9 @@ const applyVoucherCode = async (req, res) => {
   try {
     const { userId, voucherCode } = req.body;
 
-    // Only allow BARCA20 for now
-    if (voucherCode !== 'BARCA20') {
+    // [M-4] Kiểm tra voucher trong config thay vì hardcode
+    const voucherConfig = VOUCHERS[voucherCode];
+    if (!voucherConfig) {
       return res.json({ success: false, message: "Mã giảm giá không hợp lệ!" });
     }
 
@@ -94,18 +135,19 @@ const applyVoucherCode = async (req, res) => {
       return res.json({ success: false, message: "Người dùng không tồn tại." });
     }
 
-    // Check newsletter subscription (any email is ok, but must be linked to this account)
-    const newsletterModel = (await import("../models/newsletterModel.js")).default;
-    const subscription = await newsletterModel.findOne({ userId });
-    if (!subscription) {
-      return res.json({ success: false, message: "Bạn cần đăng ký nhận tin trước khi sử dụng mã giảm giá!" });
-    }
-
     if (user.usedVouchers && user.usedVouchers.includes(voucherCode)) {
       return res.json({ success: false, message: "Bạn đã sử dụng mã giảm giá này rồi." });
     }
 
-    res.json({ success: true, message: "Áp dụng mã giảm giá thành công!", discountPercent: 20 });
+    // Kiểm tra điều kiện newsletter nếu voucher yêu cầu
+    if (voucherConfig.requiresNewsletter) {
+      const subscription = await newsletterModel.findOne({ userId });
+      if (!subscription) {
+        return res.json({ success: false, message: "Bạn cần đăng ký nhận tin trước khi sử dụng mã giảm giá!" });
+      }
+    }
+
+    res.json({ success: true, message: "Áp dụng mã giảm giá thành công!", discountPercent: voucherConfig.discountPercent });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -138,9 +180,18 @@ const userOrders = async (req, res) => {
 };
 
 //UPDATE ORDER STATUS FROM ADMIN PANEL
+const VALID_STATUSES = ['Order Placed', 'Packing', 'Shipped', 'Out for delivery', 'Delivered', 'Cancelled'];
+
 const updateStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
+
+    if (!VALID_STATUSES.includes(status)) {
+      return res.json({
+        success: false,
+        message: `Status không hợp lệ. Chỉ chấp nhận: ${VALID_STATUSES.join(', ')}`,
+      });
+    }
 
     const orderData = await orderModel.findById(orderId);
 

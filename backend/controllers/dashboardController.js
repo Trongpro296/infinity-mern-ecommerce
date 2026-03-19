@@ -5,7 +5,7 @@ import orderModel from "../models/orderModel.js";
 const getDashboardStats = async (req, res) => {
   try {
     const now = new Date();
-    
+
     // Calculate start of current month and start of last month
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
@@ -18,7 +18,7 @@ const getDashboardStats = async (req, res) => {
     // Aggregations for Users MoM
     const thisMonthUsers = await userModel.countDocuments({ createdAt: { $gte: new Date(startOfThisMonth) } });
     const lastMonthUsers = await userModel.countDocuments({ createdAt: { $gte: new Date(startOfLastMonth), $lt: new Date(startOfThisMonth) } });
-    
+
     const usersGrowth = lastMonthUsers === 0 ? (thisMonthUsers > 0 ? 100 : 0) : ((thisMonthUsers - lastMonthUsers) / lastMonthUsers) * 100;
 
     // Aggregations for Orders & Revenue MoM
@@ -26,7 +26,7 @@ const getDashboardStats = async (req, res) => {
       { $match: { date: { $gte: startOfThisMonth } } },
       { $group: { _id: null, revenue: { $sum: "$amount" }, count: { $sum: 1 } } }
     ]);
-    
+
     const lastMonthOrdersResult = await orderModel.aggregate([
       { $match: { date: { $gte: startOfLastMonth, $lt: startOfThisMonth } } },
       { $group: { _id: null, revenue: { $sum: "$amount" }, count: { $sum: 1 } } }
@@ -34,7 +34,7 @@ const getDashboardStats = async (req, res) => {
 
     const thisMonthRevenue = thisMonthOrdersResult.length > 0 ? thisMonthOrdersResult[0].revenue : 0;
     const thisMonthOrders = thisMonthOrdersResult.length > 0 ? thisMonthOrdersResult[0].count : 0;
-    
+
     const lastMonthRevenue = lastMonthOrdersResult.length > 0 ? lastMonthOrdersResult[0].revenue : 0;
     const lastMonthOrders = lastMonthOrdersResult.length > 0 ? lastMonthOrdersResult[0].count : 0;
 
@@ -52,19 +52,29 @@ const getDashboardStats = async (req, res) => {
     const orderStatusResult = await orderModel.aggregate([
       { $group: { _id: "$status", count: { $sum: 1 } } }
     ]);
-    
-    // Convert to a friendly key-value map
+
     const orderStatuses = {};
     orderStatusResult.forEach(item => {
       orderStatuses[item._id] = item.count;
     });
 
-    // 3. Low Stock Alerts (Products with overall quantity < 10)
-    // We look at the base `quantity` field for simplicity.
-    const lowStockProducts = await productModel.find({ quantity: { $lt: 10 } })
-      .sort({ quantity: 1 })
-      .limit(10)
-      .select("name image quantity category");
+    const lowStockProducts = await productModel.aggregate([
+      {
+        $addFields: {
+          totalStock: {
+            $cond: {
+              if: { $gt: [{ $size: { $objectToArray: "$sizesStock" } }, 0] },
+              then: { $sum: { $map: { input: { $objectToArray: "$sizesStock" }, as: "s", in: "$$s.v" } } },
+              else: "$quantity"
+            }
+          }
+        }
+      },
+      { $match: { totalStock: { $lt: 10 } } },
+      { $sort: { totalStock: 1 } },
+      { $limit: 10 },
+      { $project: { name: 1, image: 1, quantity: "$totalStock", category: 1 } }
+    ]);
 
     // 4. Ten Recent Orders Feed
     const recentOrders = await orderModel.find({})

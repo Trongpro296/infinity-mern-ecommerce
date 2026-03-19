@@ -43,11 +43,12 @@ const List = ({ token }) => {
   };
 
   const restockProduct = async (id, name, size) => {
-    const promptMsg = size
-      ? `Nhập số lượng hàng cần bổ sung cho size ${size} của sản phẩm "${name}":`
-      : `Nhập số lượng hàng cần bổ sung cho sản phẩm "${name}":`;
+    if (!size) {
+      toast.error("Vui lòng chọn size cần restock trước khi bổ sung hàng");
+      return;
+    }
 
-    const quantityStr = prompt(promptMsg, "10");
+    const quantityStr = prompt(`Nhập số lượng hàng cần bổ sung cho size ${size} của sản phẩm "${name}":`, "10");
     if (!quantityStr) return; // User cancelled
 
     const addedQuantity = parseInt(quantityStr, 10);
@@ -97,8 +98,13 @@ const List = ({ token }) => {
 
         {/* PRODUCT LIST */}
         {list.map((item, i) => {
-          const activeSize = activeSizeMap[item._id] || (item.sizes && item.sizes.length > 0 ? item.sizes[0] : null);
-          const currentStock = activeSize && item.sizesStock ? item.sizesStock[activeSize] : item.quantity;
+          const activeSize = activeSizeMap[item._id] || null;
+          const totalStock = item.sizesStock
+            ? Object.values(item.sizesStock).reduce((a, b) => a + b, 0)
+            : 0;
+          const currentStock = activeSize && item.sizesStock
+            ? (item.sizesStock[activeSize] ?? 0)
+            : totalStock;
 
           return (
             <div
@@ -127,8 +133,10 @@ const List = ({ token }) => {
               </p>
               <div className="flex flex-col items-start gap-1">
                 <p>
-                  {activeSize ? <span className="font-semibold text-pink-600 mr-1">({activeSize})</span> : ''}
-                  {currentStock} - {currentStock > 0 ? "In stock" : "Out of stock"}
+                  {activeSize
+                    ? <><span className="font-semibold text-pink-600 mr-1">({activeSize})</span>{currentStock} - {currentStock > 0 ? "In stock" : "Out of stock"}</>
+                    : <span className="text-gray-500">Tổng: {currentStock}</span>
+                  }
                 </p>
                 <button
                   onClick={() => restockProduct(item._id, item.name, activeSize)}

@@ -8,6 +8,7 @@ export const ShopContext = createContext();
 const ShopContextProvider = (props) => {
 
   const currency = '₫';
+  // [L-4] delivery_fee cố định tạm thời — nếu muốn admin điều chỉnh được thì fetch từ backend
   const delivery_fee = 30000;
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [search, setSearch] = useState('');

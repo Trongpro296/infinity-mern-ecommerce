@@ -36,22 +36,29 @@
 - Duyệt sản phẩm theo **danh mục** và **phân loại**
 - Tìm kiếm và lọc sản phẩm theo thời gian thực
 - Quản lý giỏ hàng (thêm / cập nhật / xoá)
-- Quy trình đặt hàng (checkout) hoàn chỉnh
+- Quy trình đặt hàng (checkout) hoàn chỉnh với kiểm tra tồn kho thời gian thực
+- Áp dụng **mã giảm giá voucher** khi thanh toán (giảm 20%)
+- Đăng ký nhận **bản tin (Newsletter)** để nhận mã voucher **BARCA20**
 - Theo dõi lịch sử đơn hàng cá nhân
 - Thiết kế responsive, tương thích mọi thiết bị
 
 ### 🔧 Bảng quản trị (Admin)
 - Xác thực quản trị viên riêng biệt
+- **Bảng thống kê (Dashboard)** — Tổng quan doanh thu, đơn hàng, người dùng với tăng trưởng theo tháng (MoM)
 - **Quản lý sản phẩm** — Thêm, sửa, xoá sản phẩm kèm upload nhiều ảnh
+- **Nhập thêm hàng (Restock)** — Bổ sung số lượng tồn kho theo từng size trực tiếp từ trang quản lý
+- **Cảnh báo tồn kho thấp** — Hiển thị danh sách sản phẩm sắp hết hàng (< 10)
 - **Quản lý danh mục** — Tạo và tổ chức danh mục sản phẩm
-- **Quản lý đơn hàng** — Xem tất cả đơn và cập nhật trạng thái giao hàng
-- Bảng thống kê tổng quan
+- **Quản lý đơn hàng** — Xem tất cả đơn, cập nhật trạng thái và **tự động hoàn lại kho** khi huỷ đơn
+- **Top sản phẩm bán chạy** — Thống kê 5 sản phẩm bán chạy nhất theo doanh số
 
 ### ⚡ Backend API
 - API RESTful với Express 5
 - Xác thực JWT & phân quyền theo vai trò (User / Admin)
 - Upload ảnh lên **Cloudinary** thông qua Multer
 - Cơ sở dữ liệu MongoDB với Mongoose ODM
+- **Hệ thống voucher** — Validate theo tài khoản, mỗi người dùng chỉ dùng 1 lần
+- **Quản lý tồn kho** — Trừ kho khi đặt hàng, hoàn kho khi admin huỷ đơn
 - Xác thực đầu vào & xử lý lỗi
 
 ## 🛠 Công nghệ sử dụng
@@ -99,6 +106,7 @@
        │  Middleware     │
        │  ├─ Auth (JWT)  │
        │  ├─ AdminAuth   │
+       │  ├─ AuthOptional│
        │  └─ Multer      │
        ├────────────────┤
        │  Controllers   │
@@ -106,7 +114,9 @@
        │  ├─ Product     │
        │  ├─ Category    │
        │  ├─ Cart        │
-       │  └─ Order       │
+       │  ├─ Order       │
+       │  ├─ Newsletter  │
+       │  └─ Dashboard   │
        └────────┬───────┘
                 │
        ┌────────┴───────┐
@@ -225,6 +235,7 @@ Sau khi khởi chạy thành công cả 3 máy chủ:
 | `POST` | `/api/product/single` | — | Xem chi tiết một sản phẩm |
 | `POST` | `/api/product/add` | 🔒 Admin | Thêm sản phẩm mới (multipart/form-data) |
 | `POST` | `/api/product/remove` | 🔒 Admin | Xoá sản phẩm |
+| `POST` | `/api/product/update-stock` | 🔒 Admin | Nhập thêm số lượng tồn kho (restock) |
 
 ### Danh mục (Categories)
 
@@ -246,12 +257,26 @@ Sau khi khởi chạy thành công cả 3 máy chủ:
 
 | Phương thức | Endpoint | Quyền | Mô tả |
 |---|---|---|---|
-| `POST` | `/api/order/place` | 🔒 User | Đặt đơn hàng mới |
+| `POST` | `/api/order/place` | 🔒 User | Đặt đơn hàng mới (có kiểm tra & trừ kho) |
+| `POST` | `/api/order/apply-voucher` | 🔒 User | Kiểm tra & áp dụng mã voucher |
 | `POST` | `/api/order/userorders` | 🔒 User | Xem lịch sử đơn hàng cá nhân |
 | `POST` | `/api/order/list` | 🔒 Admin | Xem tất cả đơn hàng |
-| `POST` | `/api/order/status` | 🔒 Admin | Cập nhật trạng thái đơn hàng |
+| `POST` | `/api/order/status` | 🔒 Admin | Cập nhật trạng thái (tự động hoàn kho khi huỷ) |
+
+### Bản tin (Newsletter)
+
+| Phương thức | Endpoint | Quyền | Mô tả |
+|---|---|---|---|
+| `POST` | `/api/newsletter/subscribe` | ⚙️ Tuỳ chọn | Đăng ký nhận tin & nhận mã voucher BARCA20 |
+
+### Thống kê (Dashboard)
+
+| Phương thức | Endpoint | Quyền | Mô tả |
+|---|---|---|---|
+| `GET` | `/api/dashboard/stats` | 🔒 Admin | Tổng quan: doanh thu, đơn hàng, người dùng, tồn kho thấp |
 
 > 🔒 **Yêu cầu xác thực**: Gửi kèm `token` trong header của request.
+> ⚙️ **Tuỳ chọn**: Có thể gọi khi chưa đăng nhập; nếu đã đăng nhập, voucher sẽ được liên kết với tài khoản.
 
 ## 📂 Cấu trúc thư mục
 
@@ -267,6 +292,7 @@ infinity-mern-ecommerce/
 │       │   ├── CartTotal.jsx    #   Tổng giỏ hàng
 │       │   ├── SearchBar.jsx    #   Thanh tìm kiếm
 │       │   ├── BestSeller.jsx   #   Sản phẩm bán chạy
+│       │   ├── NewsletterBox.jsx#   Form đăng ký nhận tin & voucher
 │       │   ├── Footer.jsx       #   Chân trang
 │       │   └── ...
 │       ├── pages/               # Các trang
@@ -274,7 +300,7 @@ infinity-mern-ecommerce/
 │       │   ├── Collection.jsx   #   Danh sách sản phẩm
 │       │   ├── Product.jsx      #   Chi tiết sản phẩm
 │       │   ├── Cart.jsx         #   Giỏ hàng
-│       │   ├── PlaceOrder.jsx   #   Đặt hàng / Checkout
+│       │   ├── PlaceOrder.jsx   #   Đặt hàng / Checkout (áp dụng voucher)
 │       │   ├── Orders.jsx       #   Lịch sử đơn hàng
 │       │   ├── Login.jsx        #   Đăng nhập / Đăng ký
 │       │   └── ...
@@ -288,8 +314,9 @@ infinity-mern-ecommerce/
 │       │   ├── SideBar.jsx      #   Thanh bên điều hướng
 │       │   └── Login.jsx        #   Đăng nhập admin
 │       └── pages/
+│           ├── Dashboard.jsx    #   Bảng thống kê tổng quan
 │           ├── Add.jsx          #   Thêm sản phẩm mới
-│           ├── List.jsx         #   Quản lý danh sách sản phẩm
+│           ├── List.jsx         #   Quản lý & nhập thêm hàng (restock)
 │           └── Order.jsx        #   Quản lý đơn hàng
 │
 ├── backend/                     # Máy chủ API RESTful
@@ -298,26 +325,32 @@ infinity-mern-ecommerce/
 │   │   ├── mongodb.js           #   Kết nối cơ sở dữ liệu
 │   │   └── cloudinary.js        #   Cấu hình lưu trữ đám mây
 │   ├── models/
-│   │   ├── userModel.js         #   Schema người dùng
-│   │   ├── productModel.js      #   Schema sản phẩm
+│   │   ├── userModel.js         #   Schema người dùng (+ usedVouchers)
+│   │   ├── productModel.js      #   Schema sản phẩm (+ sizesStock)
 │   │   ├── categoryModel.js     #   Schema danh mục
-│   │   └── orderModel.js        #   Schema đơn hàng
+│   │   ├── orderModel.js        #   Schema đơn hàng
+│   │   └── newsletterModel.js   #   Schema đăng ký nhận tin
 │   ├── controllers/
 │   │   ├── userController.js    #   Logic xác thực & người dùng
-│   │   ├── productController.js #   CRUD sản phẩm
+│   │   ├── productController.js #   CRUD sản phẩm + restock
 │   │   ├── categoryController.js#   CRUD danh mục
 │   │   ├── cartController.js    #   Xử lý giỏ hàng
-│   │   └── orderController.js   #   Xử lý đơn hàng
+│   │   ├── orderController.js   #   Đặt hàng, voucher, quản lý trạng thái
+│   │   ├── newsletterController.js # Đăng ký nhận tin & phát voucher
+│   │   └── dashboardController.js  # Thống kê & phân tích dữ liệu
 │   ├── middleware/
 │   │   ├── auth.js              #   Xác thực JWT người dùng
 │   │   ├── adminAuth.js         #   Xác thực JWT quản trị viên
+│   │   ├── authOptional.js      #   Xác thực tuỳ chọn (newsletter)
 │   │   └── multer.js            #   Cấu hình upload file
 │   └── routes/
 │       ├── userRoutes.js
 │       ├── productRoute.js
 │       ├── categoryRoute.js
 │       ├── cartRoute.js
-│       └── orderRoute.js
+│       ├── orderRoute.js
+│       ├── newsletterRoute.js
+│       └── dashboardRoute.js
 │
 ├── .gitignore
 └── README.md

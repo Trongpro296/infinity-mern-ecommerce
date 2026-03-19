@@ -71,6 +71,24 @@ const listProduct = async (req, res) => {
 // function for remove product
 const removeProduct = async (req, res) => {
   try {
+    const product = await productModel.findById(req.body.id);
+
+    if (!product) {
+      return res.json({ success: false, message: "Product not found" });
+    }
+
+    // [L-7] Xóa ảnh trên Cloudinary để không lãng phí storage
+    if (product.image && product.image.length > 0) {
+      await Promise.all(
+        product.image.map(url => {
+          // Extract public_id từ Cloudinary URL (phần tên file không có đuôi)
+          const parts = url.split('/');
+          const publicId = parts[parts.length - 1].split('.')[0];
+          return cloudinary.uploader.destroy(publicId);
+        })
+      );
+    }
+
     await productModel.findByIdAndDelete(req.body.id);
     res.json({ success: true, message: "Product Removed" });
   } catch (e) {
@@ -96,31 +114,22 @@ const singleProduct = async (req, res) => {
 const updateStock = async (req, res) => {
   try {
     const { id, size, addedQuantity } = req.body;
-    
-    if (!id || !addedQuantity || isNaN(addedQuantity) || addedQuantity <= 0) {
-      return res.json({ success: false, message: "Invalid parameters for restocking" });
+
+    if (!id || !size || !addedQuantity || isNaN(addedQuantity) || addedQuantity <= 0) {
+      return res.json({ success: false, message: "Please select a size and enter a valid quantity to restock" });
     }
 
     const product = await productModel.findById(id);
     if (!product) {
-       return res.json({ success: false, message: "Product not found" });
+      return res.json({ success: false, message: "Product not found" });
     }
 
-    // Update size-specific stock if size is provided
-    if (size) {
-      if (!product.sizesStock) {
-        product.sizesStock = {};
-      }
-      product.sizesStock[size] = (product.sizesStock[size] || 0) + Number(addedQuantity);
-      product.markModified('sizesStock');
-    } else {
-      // Update general quantity if no size
-      product.quantity = (product.quantity || 0) + Number(addedQuantity);
-    }
-    
+    if (!product.sizesStock) product.sizesStock = {};
+    product.sizesStock[size] = (product.sizesStock[size] || 0) + Number(addedQuantity);
+    product.markModified('sizesStock');
     await product.save();
 
-    res.json({ success: true, message: "Stock replenished successfully", product });
+    res.json({ success: true, message: `Added ${addedQuantity} products to size ${size}`, product });
 
   } catch (error) {
     console.log(error);

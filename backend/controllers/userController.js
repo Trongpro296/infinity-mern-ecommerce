@@ -2,6 +2,10 @@ import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
+import orderModel from "../models/orderModel.js";
+import newsletterModel from "../models/newsletterModel.js";
+
+const ALLOWED_STATUSES = ['Active', 'Blocked'];
 
 const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET);
@@ -110,6 +114,11 @@ const getAllUsers = async (req, res) => {
 const updateUserStatus = async (req, res) => {
   try {
     const { userId, status } = req.body;
+
+    if (!ALLOWED_STATUSES.includes(status)) {
+      return res.json({ success: false, message: `Status is not valid. Only accept: ${ALLOWED_STATUSES.join(', ')}` });
+    }
+
     await userModel.findByIdAndUpdate(userId, { status });
     res.json({ success: true, message: "User status updated" });
   } catch (error) {
@@ -122,7 +131,13 @@ const updateUserStatus = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { userId } = req.body;
-    await userModel.findByIdAndDelete(userId);
+
+    await Promise.all([
+      userModel.findByIdAndDelete(userId),
+      orderModel.deleteMany({ userId }),
+      newsletterModel.deleteMany({ userId }),
+    ]);
+
     res.json({ success: true, message: "User deleted" });
   } catch (error) {
     console.log(error);

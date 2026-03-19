@@ -13,14 +13,13 @@ const Product = () => {
   const [image, setImage] = useState('')
   const [size, setSize] = useState('')
 
-  const fetchProductData = async () => {
-    products.map((item) => {
-      if (item._id === productId) {
-        setProductData(item)
-        setImage(item.image[0])
-        return null;
-      }
-    })
+  const fetchProductData = () => {
+    // [L-1] Dùng .find() thay vì .map() — hiệu quả hơn, dừng lại ngay khi tìm được
+    const found = products.find(item => item._id === productId);
+    if (found) {
+      setProductData(found);
+      setImage(found.image[0]);
+    }
   }
 
   useEffect(() => {
@@ -59,11 +58,12 @@ const Product = () => {
           </div>
 
           {(() => {
-            const currentStock = size && productData.sizesStock && productData.sizesStock[size] !== undefined
-              ? productData.sizesStock[size]
-              : productData.quantity;
+            // null = chưa chọn size, chỉ check sold out khi đã chọn
+            const currentStock = size && productData.sizesStock
+              ? (productData.sizesStock[size] ?? 0)
+              : null;
 
-            const isSoldOut = size && currentStock <= 0;
+            const isSoldOut = currentStock !== null && currentStock <= 0;
 
             return (
               <React.Fragment>
@@ -113,13 +113,9 @@ const Product = () => {
           <b className='border px-5 py-3 text-sm'>Description</b>
           <p className='border px-5 py-3 text-sm'>Reviews (122) </p>
         </div>
+        {/* [L-3] Hiển thị mô tả thực của sản phẩm thay vì nội dung hardcoded */}
         <div className='flex flex-col border gap-4 px-6 py-6 text-sm text-gray-500'>
-          <p>Designed with the iconic blaugrana stripes, this jersey features a gradient effect in blue and red tones that gives it a modern and dynamic style. The FC Barcelona crest is placed on the chest, on the left side, while the Nike logo appears on the right side.
-            Inspired by the pros, our Stadium collection combines details with sweat-wicking technology to give you a match-ready look inspired by your favorite team. Stay dry.</p>
-          <p>Nike Dri-FIT technology moves sweat away from your skin for quicker evaporation, helping you stay dry and comfortable.
-            Color: Blue and Red
-            100% polyester
-          </p>
+          <p>{productData.description}</p>
         </div>
       </div>
 
