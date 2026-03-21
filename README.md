@@ -44,12 +44,13 @@
 
 ### 🔧 Bảng quản trị (Admin)
 - Xác thực quản trị viên riêng biệt
-- **Bảng thống kê (Dashboard)** — Tổng quan doanh thu, đơn hàng, người dùng với tăng trưởng theo tháng (MoM)
+- **Bảng thống kê (Dashboard)** — Tổng quan doanh thu, đơn hàng, người dùng với tăng trưởng theo tháng (MoM); phân bố trạng thái đơn hàng & 10 đơn gần nhất
 - **Quản lý sản phẩm** — Thêm, sửa, xoá sản phẩm kèm upload nhiều ảnh
 - **Nhập thêm hàng (Restock)** — Bổ sung số lượng tồn kho theo từng size trực tiếp từ trang quản lý
-- **Cảnh báo tồn kho thấp** — Hiển thị danh sách sản phẩm sắp hết hàng (< 10)
+- **Cảnh báo tồn kho thấp** — Hiển thị danh sách sản phẩm sắp hết hàng (tổng tồn kho < 10, tính theo variant size)
 - **Quản lý danh mục** — Tạo và tổ chức danh mục sản phẩm
-- **Quản lý đơn hàng** — Xem tất cả đơn, cập nhật trạng thái và **tự động hoàn lại kho** khi huỷ đơn
+- **Quản lý đơn hàng** — Xem tất cả đơn, cập nhật trạng thái (enum validation) và **tự động hoàn lại kho** khi huỷ đơn
+- **Quản lý người dùng** — Xem danh sách tất cả tài khoản, khoá/mở khoá (Active/Blocked), xoá người dùng (cascade: đơn hàng & đăng ký bản tin)
 - **Top sản phẩm bán chạy** — Thống kê 5 sản phẩm bán chạy nhất theo doanh số
 
 ### ⚡ Backend API
@@ -57,8 +58,10 @@
 - Xác thực JWT & phân quyền theo vai trò (User / Admin)
 - Upload ảnh lên **Cloudinary** thông qua Multer
 - Cơ sở dữ liệu MongoDB với Mongoose ODM
-- **Hệ thống voucher** — Validate theo tài khoản, mỗi người dùng chỉ dùng 1 lần
-- **Quản lý tồn kho** — Trừ kho khi đặt hàng, hoàn kho khi admin huỷ đơn
+- **Tính giá phía server** — Giá sản phẩm luôn được lấy từ DB, không tin dữ liệu từ client (chống giả mạo giá)
+- **Hệ thống voucher** — Validate 2 lớp (khi apply & khi đặt hàng), liên kết theo tài khoản, mỗi user chỉ dùng 1 lần
+- **Quản lý tồn kho nguyên tử (Atomic)** — Trừ kho bằng MongoDB `$inc` có điều kiện để tránh race condition; hoàn kho khi admin huỷ đơn
+- **Enum validation trạng thái** — Order status & user status chỉ chấp nhận các giá trị được định nghĩa sẵn
 - Xác thực đầu vào & xử lý lỗi
 
 ## 🛠 Công nghệ sử dụng
@@ -219,13 +222,16 @@ Sau khi khởi chạy thành công cả 3 máy chủ:
 
 Đường dẫn gốc: `http://localhost:4000`
 
-### Xác thực người dùng (Authentication)
+### Xác thực & Quản lý người dùng (Users)
 
 | Phương thức | Endpoint | Quyền | Mô tả |
 |---|---|---|---|
 | `POST` | `/api/user/register` | — | Đăng ký tài khoản mới |
 | `POST` | `/api/user/login` | — | Đăng nhập & nhận JWT token |
 | `POST` | `/api/user/admin` | — | Đăng nhập quyền Admin |
+| `GET` | `/api/user/list` | 🔒 Admin | Lấy danh sách tất cả người dùng (ẩn password) |
+| `POST` | `/api/user/status` | 🔒 Admin | Cập nhật trạng thái tài khoản (`Active` / `Blocked`) |
+| `POST` | `/api/user/delete` | 🔒 Admin | Xoá người dùng & toàn bộ đơn hàng, đăng ký bản tin liên quan |
 
 ### Sản phẩm (Products)
 
@@ -273,7 +279,7 @@ Sau khi khởi chạy thành công cả 3 máy chủ:
 
 | Phương thức | Endpoint | Quyền | Mô tả |
 |---|---|---|---|
-| `GET` | `/api/dashboard/stats` | 🔒 Admin | Tổng quan: doanh thu, đơn hàng, người dùng, tồn kho thấp |
+| `GET` | `/api/dashboard/stats` | 🔒 Admin | Tổng quan: doanh thu, đơn hàng, người dùng, tăng trưởng MoM, phân bố trạng thái, tồn kho thấp, 10 đơn gần nhất, top 5 sản phẩm bán chạy |
 
 > 🔒 **Yêu cầu xác thực**: Gửi kèm `token` trong header của request.
 > ⚙️ **Tuỳ chọn**: Có thể gọi khi chưa đăng nhập; nếu đã đăng nhập, voucher sẽ được liên kết với tài khoản.
@@ -317,7 +323,8 @@ infinity-mern-ecommerce/
 │           ├── Dashboard.jsx    #   Bảng thống kê tổng quan
 │           ├── Add.jsx          #   Thêm sản phẩm mới
 │           ├── List.jsx         #   Quản lý & nhập thêm hàng (restock)
-│           └── Order.jsx        #   Quản lý đơn hàng
+│           ├── Order.jsx        #   Quản lý đơn hàng
+│           └── Users.jsx        #   Quản lý người dùng (xem, khoá/mở khoá, xoá)
 │
 ├── backend/                     # Máy chủ API RESTful
 │   ├── server.js                # Điểm khởi chạy
