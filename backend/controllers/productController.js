@@ -50,7 +50,7 @@ const addProduct = async (req, res) => {
     const product = new productModel(productData);
     await product.save();
 
-    res.json({ success: true, message: "Product added successfully" });
+    res.json({ success: true, message: "Thêm sản phẩm thành công" });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -74,7 +74,7 @@ const removeProduct = async (req, res) => {
     const product = await productModel.findById(req.body.id);
 
     if (!product) {
-      return res.json({ success: false, message: "Product not found" });
+      return res.json({ success: false, message: "Không tìm thấy sản phẩm" });
     }
 
     // [L-7] Xóa ảnh trên Cloudinary để không lãng phí storage
@@ -90,7 +90,7 @@ const removeProduct = async (req, res) => {
     }
 
     await productModel.findByIdAndDelete(req.body.id);
-    res.json({ success: true, message: "Product Removed" });
+    res.json({ success: true, message: "Xóa sản phẩm thành công" });
   } catch (e) {
     console.log(e);
     res.json({ success: false, message: e.message });
@@ -116,12 +116,12 @@ const updateStock = async (req, res) => {
     const { id, size, addedQuantity } = req.body;
 
     if (!id || !size || !addedQuantity || isNaN(addedQuantity) || addedQuantity <= 0) {
-      return res.json({ success: false, message: "Please select a size and enter a valid quantity to restock" });
+      return res.json({ success: false, message: "Vui lòng chọn Kích cỡ và nhập số lượng hợp lệ để nhập kho" });
     }
 
     const product = await productModel.findById(id);
     if (!product) {
-      return res.json({ success: false, message: "Product not found" });
+      return res.json({ success: false, message: "Không tìm thấy sản phẩm" });
     }
 
     if (!product.sizesStock) product.sizesStock = {};
@@ -129,7 +129,7 @@ const updateStock = async (req, res) => {
     product.markModified('sizesStock');
     await product.save();
 
-    res.json({ success: true, message: `Added ${addedQuantity} products to size ${size}`, product });
+    res.json({ success: true, message: `Đã thêm ${addedQuantity} sản phẩm vào size ${size}`, product });
 
   } catch (error) {
     console.log(error);

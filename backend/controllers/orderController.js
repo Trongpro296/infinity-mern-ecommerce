@@ -112,7 +112,7 @@ const placeOrder = async (req, res) => {
 
     await userModel.findByIdAndUpdate(userId, updateQuery);
 
-    res.json({ success: true, message: "Order Placed", amount });
+    res.json({ success: true, message: "Đặt hàng thành công", amount });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -182,14 +182,28 @@ const userOrders = async (req, res) => {
 //UPDATE ORDER STATUS FROM ADMIN PANEL
 const VALID_STATUSES = ['Order Placed', 'Packing', 'Shipped', 'Out for delivery', 'Delivered', 'Cancelled'];
 
+const STATUS_MAP = {
+  1: 'Order Placed',
+  2: 'Packing',
+  3: 'Shipped',
+  4: 'Out for delivery',
+  5: 'Delivered',
+  6: 'Cancelled'
+};
+
 const updateStatus = async (req, res) => {
   try {
-    const { orderId, status } = req.body;
+    let { orderId, status } = req.body;
+
+    // Payload Mapping cho Postman: Nếu status là số (1-6), chuyển thành chuỗi Enum
+    if (STATUS_MAP[status]) {
+      status = STATUS_MAP[status];
+    }
 
     if (!VALID_STATUSES.includes(status)) {
       return res.json({
         success: false,
-        message: `Status không hợp lệ. Chỉ chấp nhận: ${VALID_STATUSES.join(', ')}`,
+        message: `Status không hợp lệ. Chỉ chấp nhận chuỗi trạng thái hoặc ID từ 1 đến 6.`,
       });
     }
 
@@ -213,7 +227,7 @@ const updateStatus = async (req, res) => {
 
     await orderModel.findByIdAndUpdate(orderId, { status });
 
-    res.json({ success: true, message: "Status updated" });
+    res.json({ success: true, message: "Cập nhật trạng thái thành công" });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });

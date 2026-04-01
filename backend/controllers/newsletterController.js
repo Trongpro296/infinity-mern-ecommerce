@@ -5,7 +5,7 @@ const subscribeNewsletter = async (req, res) => {
     const { email, userId } = req.body;
 
     if (!email) {
-      return res.json({ success: false, message: "Email is required." });
+      return res.json({ success: false, message: "Vui lòng nhập email." });
     }
 
     // Check if email already subscribed
@@ -16,7 +16,7 @@ const subscribeNewsletter = async (req, res) => {
       if (existingSubscriber.userId && existingSubscriber.userId === userId) {
         return res.json({
           success: false,
-          message: "You have already subscribed. Your discount code is: BARCA20",
+          message: "Bạn đã đăng ký nhận tin. Mã giảm giá của bạn là: BARCA20",
           voucherCode: "BARCA20"
         });
       }
@@ -27,7 +27,7 @@ const subscribeNewsletter = async (req, res) => {
         await existingSubscriber.save();
         return res.json({
           success: true,
-          message: "You have successfully subscribed. Your discount code is: BARCA20",
+          message: "Đăng ký nhận tin thành công. Mã giảm giá của bạn là: BARCA20",
           voucherCode: "BARCA20"
         });
       }
@@ -35,7 +35,7 @@ const subscribeNewsletter = async (req, res) => {
       // Case 3: Email already taken by another account
       return res.json({
         success: false,
-        message: "This email has been used to subscribe by another account."
+        message: "Email này đã được đăng ký."
       });
     }
 
@@ -45,7 +45,7 @@ const subscribeNewsletter = async (req, res) => {
 
     res.json({
       success: true,
-      message: "You have successfully subscribed. Your discount code is: BARCA20",
+      message: "Đăng ký nhận tin thành công. Mã giảm giá của bạn là: BARCA20",
       voucherCode: "BARCA20"
     });
 

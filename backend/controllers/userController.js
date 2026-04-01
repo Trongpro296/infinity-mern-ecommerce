@@ -20,7 +20,7 @@ const loginUser = async (req, res) => {
     const user = await userModel.findOne({ email });
 
     if (!user) {
-      return res.json({ success: false, message: "User doesn't exists" });
+      return res.json({ success: false, message: "Tài khoản không tồn tại" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -31,7 +31,7 @@ const loginUser = async (req, res) => {
       res.json({ success: true, token });
 
     } else {
-      return res.json({ success: false, message: "Invalid Credentials" });
+      return res.json({ success: false, message: "Thông tin đăng nhập không chính xác" });
     }
   } catch (error) {
     console.log(error);
@@ -48,16 +48,16 @@ const registerUser = async (req, res) => {
     const exists = await userModel.findOne({ email });
 
     if (exists) {
-      return res.json({ success: false, message: "User already exists" });
+      return res.json({ success: false, message: "Tài khoản (Email) này đã tồn tại" });
     }
 
     //validating email formate and strong password
     if (!validator.isEmail(email)) {
-      return res.json({ success: false, message: "Please enter a valid email", });
+      return res.json({ success: false, message: "Vui lòng nhập email hợp lệ", });
     }
 
     if (password.length < 8) {
-      return res.json({ success: false, message: "Please enter a strong password", });
+      return res.json({ success: false, message: "Vui lòng nhập mật khẩu mạnh", });
     }
 
     //hashing user password
@@ -91,7 +91,7 @@ const adminLogin = async (req, res) => {
       const token = jwt.sign(email + password, process.env.JWT_SECRET);
       res.json({ success: true, token });
     } else {
-      res.json({ success: false, message: "Invalid Credentials" });
+      res.json({ success: false, message: "Thông tin đăng nhập không chính xác" });
     }
   } catch (error) {
     console.log(error);
@@ -120,7 +120,7 @@ const updateUserStatus = async (req, res) => {
     }
 
     await userModel.findByIdAndUpdate(userId, { status });
-    res.json({ success: true, message: "User status updated" });
+    res.json({ success: true, message: "Cập nhật trạng thái thành công" });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -138,7 +138,7 @@ const deleteUser = async (req, res) => {
       newsletterModel.deleteMany({ userId }),
     ]);
 
-    res.json({ success: true, message: "User deleted" });
+    res.json({ success: true, message: "Đã xóa tài khoản và dọn dẹp dữ liệu thành công" });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });

@@ -47,7 +47,7 @@ const Add = ({ token }) => {
 
   const handleAddCategory = async () => {
     try {
-      if (!newCatName) return toast.error("Please enter a category name");
+      if (!newCatName) return toast.error("Vui lòng nhập tên danh mục");
       const response = await axios.post(
         backendUrl + "/api/category/add",
         { name: newCatName, parent_name: "" },
@@ -69,7 +69,7 @@ const Add = ({ token }) => {
 
   const handleAddSubCategory = async () => {
     try {
-      if (!newSubCatName) return toast.error("Please enter a sub category name");
+      if (!newSubCatName) return toast.error("Vui lòng nhập tên danh mục con");
 
       const response = await axios.post(
         backendUrl + "/api/category/add",

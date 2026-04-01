@@ -13,6 +13,8 @@
 - [Biến môi trường](#-biến-môi-trường)
 - [Hướng dẫn sử dụng](#-hướng-dẫn-sử-dụng)
 - [Tài liệu API](#-tài-liệu-api)
+- [Tài liệu hệ thống](#-tài-liệu-hệ-thống)
+- [Sơ đồ thiết kế hệ thống](#-sơ-đồ-thiết-kế-hệ-thống)
 - [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
 - [Ảnh chụp màn hình](#-ảnh-chụp-màn-hình)
 - [Đóng góp](#-đóng-góp)
@@ -102,17 +104,17 @@
        │    HTTP (Axios)    │
        └────────┬───────────┘
                 ▼
-       ┌────────────────┐
-       │   Backend API  │
-       │  Express :4000 │
-       ├────────────────┤
+       ┌─────────────────┐
+       │   Backend API   │
+       │  Express :4000  │
+       ├─────────────────┤
        │  Middleware     │
        │  ├─ Auth (JWT)  │
        │  ├─ AdminAuth   │
        │  ├─ AuthOptional│
        │  └─ Multer      │
-       ├────────────────┤
-       │  Controllers   │
+       ├─────────────────┤
+       │  Controllers    │
        │  ├─ User        │
        │  ├─ Product     │
        │  ├─ Category    │
@@ -120,14 +122,14 @@
        │  ├─ Order       │
        │  ├─ Newsletter  │
        │  └─ Dashboard   │
-       └────────┬───────┘
+       └────────┬────────┘
                 │
        ┌────────┴───────┐
        │                │
   ┌────▼─────┐   ┌──────▼─────┐
   │ MongoDB  │   │ Cloudinary │
-  │ Cơ sở   │   │ Lưu trữ   │
-  │ dữ liệu │   │ hình ảnh   │
+  │ Cơ sở    │   │ Lưu trữ    │
+  │ dữ liệu  │   │ hình ảnh   │
   └──────────┘   └────────────┘
 ```
 
@@ -283,6 +285,23 @@ Sau khi khởi chạy thành công cả 3 máy chủ:
 
 > 🔒 **Yêu cầu xác thực**: Gửi kèm `token` trong header của request.
 > ⚙️ **Tuỳ chọn**: Có thể gọi khi chưa đăng nhập; nếu đã đăng nhập, voucher sẽ được liên kết với tài khoản.
+
+## 📚 Tài liệu hệ thống
+
+Dự án bao gồm các tài liệu báo cáo và phân tích thiết kế chi tiết:
+
+- **Báo cáo Đặc tả yêu cầu hệ thống (SRS):** [`docs/Báo cáo SRS Lập trình Web.pdf`](./docs/B%C3%A1o%20c%C3%A1o%20SRS%20L%E1%BA%ADp%20tr%C3%ACnh%20Web.pdf) (hoặc [bản Word](./docs/B%C3%A1o%20c%C3%A1o%20SRS%20L%E1%BA%ADp%20tr%C3%ACnh%20Web.docx))
+- **Báo cáo Lập trình Web:** [Bản Word](./docs/B%C3%A1o%20c%C3%A1o%20l%E1%BA%ADp%20tr%C3%ACnh%20Web.docx)
+
+## 📊 Sơ đồ thiết kế hệ thống
+
+Toàn bộ sơ đồ thiết kế được lưu trong thư mục [`docs/diagrams/`](./docs/diagrams/):
+
+- **[Use Case Diagram](./docs/diagrams/Use%20Case%20Diagram%20.jpg)**: Sơ đồ ca sử dụng của hệ thống
+- **[Class Diagram](./docs/diagrams/Class%20Diagram.jpg)**: Sơ đồ lớp chi tiết
+- **[Entity Relationship Diagram (ERD)](./docs/diagrams/Entity%20Relationship%20Diagram.jpg)**: Sơ đồ thực thể kết hợp
+- **[Deployment Diagram](./docs/diagrams/Deployment%20Diagram.jpg)**: Sơ đồ triển khai kiến trúc hệ thống
+- **Sơ đồ Tuần tự (Sequence Diagrams)**: Bao gồm 17 luồng nghiệp vụ chi tiết (Xem trang chủ, Khám phá sản phẩm, Đặt hàng, Thanh toán, Quản lý kho, CSR, ...). Khám phá [tại đây](./docs/diagrams/).
 
 ## 📂 Cấu trúc thư mục
 
