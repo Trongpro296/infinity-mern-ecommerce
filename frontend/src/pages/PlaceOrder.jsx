@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import Title from '../components/Title';
 import CartTotal from '../components/CartTotal';
 
@@ -6,19 +6,75 @@ import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
+const PROVINCES_API = 'https://provinces.open-api.vn/api/v2';
+
 const PlaceOrder = () => {
 
   const [method, setMethod] = useState('cod');
   const { navigate, backendUrl, token, cartItems, setCartItem, getCartAmount, delivery_fee, products, discountPercent, appliedVoucher, setAppliedVoucher, setDiscountPercent } = useContext(ShopContext);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     street: "",
-    city: "",
-    state: "",
     phone: "",
   });
+
+  // Vietnam address states
+  const [provinces, setProvinces] = useState([]);
+  const [wards, setWards] = useState([]);
+
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedWard, setSelectedWard] = useState("");
+
+  const [provinceName, setProvinceName] = useState("");
+  const [wardName, setWardName] = useState("");
+
+  // Fetch provinces on mount
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      try {
+        const res = await axios.get(`${PROVINCES_API}/p/`);
+        setProvinces(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchProvinces();
+  }, []);
+
+  // Fetch wards when province changes (v2: wards directly under province)
+  useEffect(() => {
+    if (!selectedProvince) {
+      setWards([]);
+      setSelectedWard("");
+      setWardName("");
+      return;
+    }
+    const fetchWards = async () => {
+      try {
+        const res = await axios.get(`${PROVINCES_API}/p/${selectedProvince}?depth=2`);
+        setProvinceName(res.data.name);
+        setWards(res.data.wards || []);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchWards();
+    setSelectedWard("");
+    setWardName("");
+  }, [selectedProvince]);
+
+  // Set ward name when ward changes
+  useEffect(() => {
+    if (selectedWard) {
+      const ward = wards.find((w) => String(w.code) === String(selectedWard));
+      if (ward) setWardName(ward.name);
+    } else {
+      setWardName("");
+    }
+  }, [selectedWard]);
 
   const onChangeHandler = (e) => {
     const name = e.target.name;
@@ -26,9 +82,13 @@ const PlaceOrder = () => {
     setFormData(data => ({ ...data, [name]: value }));
   };
 
-
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+
+    if (!selectedProvince || !selectedWard) {
+      toast.error("Vui lòng chọn đầy đủ Tỉnh/Thành phố và Phường/Xã");
+      return;
+    }
 
     try {
 
@@ -52,15 +112,21 @@ const PlaceOrder = () => {
       const finalAmount = cartAmount === 0 ? 0 : cartAmount - discountAmount + delivery_fee;
 
       let orderData = {
-        address: formData,
+        address: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          street: formData.street,
+          province: provinceName,
+          ward: wardName,
+          phone: formData.phone,
+        },
         items: orderItems,
         amount: finalAmount,
         appliedVoucher: appliedVoucher || null
       }
 
       switch (method) {
-
-        // API calls for cod
         case 'cod':
           const response = await axios.post(backendUrl + '/api/order/place', orderData, { headers: { token } })
           if (response.data.success) {
@@ -96,11 +162,36 @@ const PlaceOrder = () => {
           <input required onChange={onChangeHandler} name='lastName' value={formData.lastName} className='border border-gray-300 rounded py-1.5 px-3.5 w-full' type="text" placeholder='Last name' />
         </div>
         <input required onChange={onChangeHandler} name='email' value={formData.email} className='border border-gray-300 rounded py-1.5 px-3.5 w-full' type="email" placeholder='Email address' />
-        <input required onChange={onChangeHandler} name='street' value={formData.street} className='border border-gray-300 rounded py-1.5 px-3.5 w-full' type="text" placeholder='Street' />
+        <input required onChange={onChangeHandler} name='street' value={formData.street} className='border border-gray-300 rounded py-1.5 px-3.5 w-full' type="text" placeholder='Street address' />
+
+        {/* Province & Ward */}
         <div className='flex gap-3'>
-          <input required onChange={onChangeHandler} name='city' value={formData.city} className='border border-gray-300 rounded py-1.5 px-3.5 w-full' type="text" placeholder='City' />
-          <input required onChange={onChangeHandler} name='state' value={formData.state} className='border border-gray-300 rounded py-1.5 px-3.5 w-full' type="text" placeholder='State' />
+          <select
+            required
+            value={selectedProvince}
+            onChange={(e) => setSelectedProvince(e.target.value)}
+            className={`border border-gray-300 rounded py-1.5 px-3.5 w-full ${selectedProvince ? 'text-gray-700' : 'text-gray-400'}`}
+          >
+            <option value="" disabled className='text-gray-400'>Select Province/City</option>
+            {provinces.map((p) => (
+              <option key={p.code} value={p.code} className='text-gray-700'>{p.name}</option>
+            ))}
+          </select>
+
+          <select
+            required
+            value={selectedWard}
+            onChange={(e) => setSelectedWard(e.target.value)}
+            className={`border border-gray-300 rounded py-1.5 px-3.5 w-full ${selectedWard ? 'text-gray-700' : 'text-gray-400'}`}
+            disabled={!selectedProvince}
+          >
+            <option value="" disabled className='text-gray-400'>Select Ward/Commune</option>
+            {wards.map((w) => (
+              <option key={w.code} value={w.code} className='text-gray-700'>{w.name}</option>
+            ))}
+          </select>
         </div>
+
         <input required onChange={onChangeHandler} name='phone' value={formData.phone} className='border border-gray-300 rounded py-1.5 px-3.5 w-full' type="number" placeholder='Phone' />
       </div>
 

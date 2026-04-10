@@ -13,21 +13,12 @@ const Add = ({ token }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("Men");
-  const [subCategory, setSubCategory] = useState("Topwear");
-  const [bestseller, setBestseller] = useState(false);
+  const [category, setCategory] = useState("");
+
   const [sizes, setSizes] = useState([]);
   const [quantity, setQuantity] = useState("");
 
   const [categoriesData, setCategoriesData] = useState([]);
-
-  // States for adding Main Category
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [newCatName, setNewCatName] = useState("");
-
-  // States for adding Sub Category
-  const [isAddingSubCategory, setIsAddingSubCategory] = useState(false);
-  const [newSubCatName, setNewSubCatName] = useState("");
 
   const fetchCategories = async () => {
     try {
@@ -45,94 +36,6 @@ const Add = ({ token }) => {
     fetchCategories();
   }, []);
 
-  const handleAddCategory = async () => {
-    try {
-      if (!newCatName) return toast.error("Vui lòng nhập tên danh mục");
-      const response = await axios.post(
-        backendUrl + "/api/category/add",
-        { name: newCatName, parent_name: "" },
-        { headers: { token } }
-      );
-      if (response.data.success) {
-        toast.success(response.data.message);
-        setNewCatName("");
-        setIsAddingCategory(false);
-        fetchCategories();
-      } else {
-        toast.error(response.data.message);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error(error.message);
-    }
-  };
-
-  const handleAddSubCategory = async () => {
-    try {
-      if (!newSubCatName) return toast.error("Vui lòng nhập tên danh mục con");
-
-      const response = await axios.post(
-        backendUrl + "/api/category/add",
-        { name: newSubCatName, parent_name: "SubCategory" },
-        { headers: { token } }
-      );
-      if (response.data.success) {
-        toast.success(response.data.message);
-        setNewSubCatName("");
-        setIsAddingSubCategory(false);
-        fetchCategories();
-      } else {
-        toast.error(response.data.message);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error(error.message);
-    }
-  };
-
-  const handleRemoveCategory = async (nameToRemove) => {
-    try {
-      if (!nameToRemove) return;
-      const confirmDelete = window.confirm(`Bạn có chắc muốn xóa danh mục "${nameToRemove}"?`);
-      if (!confirmDelete) return;
-
-      const response = await axios.post(backendUrl + "/api/category/remove", { name: nameToRemove }, { headers: { token } });
-
-      if (response.data.success) {
-        toast.success(response.data.message);
-        fetchCategories();
-      } else {
-        toast.error(response.data.message);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error(error.message);
-    }
-  };
-
-  const defaultMainCats = ["Men", "Women", "Kids"];
-  const defaultSubCatsArr = ["Topwear", "Bottomwear", "Winterwear"];
-
-  const dbMainCats = categoriesData.filter((c) => !c.parent_name).map(c => c.name);
-  const allMainCategories = [...new Set([...defaultMainCats, ...dbMainCats])];
-
-  const dbSubCats = categoriesData.filter((c) => c.parent_name === "SubCategory").map(c => c.name);
-  const allSubCategories = [...new Set([...defaultSubCatsArr, ...dbSubCats])];
-
-  useEffect(() => {
-    if (allMainCategories.length > 0 && !allMainCategories.includes(category)) {
-      setCategory(allMainCategories[0]);
-    }
-  }, [categoriesData]);
-
-  useEffect(() => {
-    if (allSubCategories.length > 0 && !allSubCategories.includes(subCategory)) {
-      setSubCategory(allSubCategories[0]);
-    } else if (allSubCategories.length === 0) {
-      setSubCategory("");
-    }
-  }, [categoriesData]);
-
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     try {
@@ -142,8 +45,7 @@ const Add = ({ token }) => {
       formData.append("description", description);
       formData.append("price", price);
       formData.append("category", category);
-      formData.append("subCategory", subCategory);
-      formData.append("bestSeller", bestseller);
+
       const orderedSizes = ["S", "M", "L", "XL", "XXL"];
       const sortedSizes = [...sizes].sort((a, b) => orderedSizes.indexOf(a) - orderedSizes.indexOf(b));
 
@@ -217,63 +119,14 @@ const Add = ({ token }) => {
         <textarea className="w-full max-w-[500px] px-3 py-2" type="text" placeholder="Write content here" required onChange={(e) => setDescription(e.target.value)} value={description} />
       </div>
 
-      <div className="w-full flex gap-4 mb-2">
-        <button type="button" onClick={() => { setIsAddingCategory(!isAddingCategory); setIsAddingSubCategory(false); }} className={`text-sm ${isAddingCategory ? 'text-red-500' : 'text-blue-500'}`}>
-          {isAddingCategory ? "Add product category" : "+ Add product category"}
-        </button>
-        <button type="button" onClick={() => { setIsAddingSubCategory(!isAddingSubCategory); setIsAddingCategory(false); }} className={`text-sm ${isAddingSubCategory ? 'text-red-500' : 'text-blue-500'}`}>
-          {isAddingSubCategory ? "Add sub category" : "+ Add sub category"}
-        </button>
-      </div>
-
-      {isAddingCategory && (
-        <div className="w-full flex gap-2 items-center mb-4 border p-3 bg-gray-50 max-w-[500px]">
-          <input type="text" placeholder="New Category name..." className="px-3 py-2 border flex-1 text-sm" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} />
-          <button type="button" onClick={handleAddCategory} className="bg-black text-white px-4 py-2 hover:bg-gray-800 transition-colors text-sm">Save</button>
-        </div>
-      )}
-
-      {isAddingSubCategory && (
-        <div className="w-full flex gap-2 items-center mb-4 border p-3 bg-gray-50 max-w-[500px]">
-          <input type="text" placeholder="New Sub-category name..." className="px-3 py-2 border flex-1 text-sm" value={newSubCatName} onChange={(e) => setNewSubCatName(e.target.value)} />
-          <button type="button" onClick={handleAddSubCategory} className="bg-black text-white px-4 py-2 hover:bg-gray-800 transition-colors text-sm">Save</button>
-        </div>
-      )}
-
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:gap-8">
         <div>
-          <div className="flex gap-2 items-center mb-2">
-            <p className="mb-0">Product category</p>
-            {category && !defaultMainCats.includes(category) && (
-              <button type="button" onClick={() => handleRemoveCategory(category)} className="text-[10px] text-red-500 hover:text-red-700 bg-red-50 w-5 h-5 flex items-center justify-center rounded cursor-pointer border border-red-200" title="Delete this category">
-                ✕
-              </button>
-            )}
-          </div>
+          <p className="mb-2">Product Category</p>
           <select onChange={(e) => setCategory(e.target.value)} className="w-full px-3 py-2 mb-2" value={category}>
-            {allMainCategories.map((cat, idx) => (
-              <option key={idx} value={cat}>{cat}</option>
+            <option value="" disabled>Select category</option>
+            {categoriesData.map((cat) => (
+              <option key={cat._id} value={cat.name}>{cat.name}</option>
             ))}
-          </select>
-        </div>
-
-        <div>
-          <div className="flex gap-2 items-center mb-2">
-            <p className="mb-0">Sub category</p>
-            {subCategory && !defaultSubCatsArr.includes(subCategory) && (
-              <button type="button" onClick={() => handleRemoveCategory(subCategory)} className="text-[10px] text-red-500 hover:text-red-700 bg-red-50 w-5 h-5 flex items-center justify-center rounded cursor-pointer border border-red-200" title="Delete this sub-category">
-                ✕
-              </button>
-            )}
-          </div>
-          <select onChange={(e) => setSubCategory(e.target.value)} className="w-full px-3 py-2 mb-2" value={subCategory}>
-            {allSubCategories.length > 0 ? (
-              allSubCategories.map((cat, idx) => (
-                <option key={idx} value={cat}>{cat}</option>
-              ))
-            ) : (
-              <option value="">No sub-category</option>
-            )}
           </select>
         </div>
 
@@ -313,10 +166,7 @@ const Add = ({ token }) => {
         </div>
       </div>
 
-      <div className="flex gap-2 mt-2">
-        <input onChange={() => setBestseller((p) => !p)} checked={bestseller} type="checkbox" id="bestseller" />
-        <label className="cursor-pointer" htmlFor="bestseller">Add to bestseller</label>
-      </div>
+
 
       <button className="w-28 py-3 mt-4 bg-black text-white" type="submit">Add</button>
     </form>

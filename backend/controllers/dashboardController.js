@@ -1,6 +1,27 @@
 import userModel from "../models/userModel.js";
 import productModel from "../models/productModel.js";
 import orderModel from "../models/orderModel.js";
+import categoryModel from "../models/categoryModel.js";
+
+// Shared: Aggregate top N best-selling products from order data
+const aggregateBestSellers = async (limit = 5) => {
+  const topProductsResult = await orderModel.aggregate([
+    { $unwind: "$items" },
+    {
+      $group: {
+        _id: "$items._id",
+        name: { $first: "$items.name" },
+        totalQuantity: { $sum: "$items.quantity" },
+        totalRevenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+        image: { $first: { $arrayElemAt: ["$items.image", 0] } }
+      }
+    },
+    { $sort: { totalQuantity: -1 } },
+    { $limit: limit }
+  ]);
+
+  return topProductsResult;
+};
 
 const getDashboardStats = async (req, res) => {
   try {
@@ -92,27 +113,38 @@ const getDashboardStats = async (req, res) => {
       method: order.paymentMethod
     }));
 
-    // 5. Top 5 Best Selling Products (Kept from previous version)
-    const topProductsResult = await orderModel.aggregate([
-      { $unwind: "$items" },
-      {
-        $group: {
-          _id: "$items.name",
-          totalQuantity: { $sum: "$items.quantity" },
-          totalRevenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
-          image: { $first: { $arrayElemAt: ["$items.image", 0] } }
-        }
-      },
-      { $sort: { totalQuantity: -1 } },
-      { $limit: 5 }
-    ]);
+    // 5. Top 5 Best Selling Products (reused shared logic)
+    const topProductsRaw = await aggregateBestSellers(5);
 
-    const topProducts = topProductsResult.map(item => ({
-      name: item._id,
+    const topProducts = topProductsRaw.map(item => ({
+      name: item.name,
       quantity: item.totalQuantity,
       revenue: item.totalRevenue,
       image: item.image
     }));
+
+    // 6. Monthly Revenue for current year (for bar chart)
+    const currentYear = now.getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1).getTime();
+    const endOfYear = new Date(currentYear + 1, 0, 1).getTime();
+
+    const monthlyRevenueResult = await orderModel.aggregate([
+      { $match: { status: "Delivered", date: { $gte: startOfYear, $lt: endOfYear } } },
+      {
+        $group: {
+          _id: { $month: { $toDate: "$date" } },
+          revenue: { $sum: "$amount" },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Fill all 12 months (0 for months with no revenue)
+    const monthNames = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
+    const monthlyRevenue = monthNames.map((name, idx) => {
+      const found = monthlyRevenueResult.find((m) => m._id === idx + 1);
+      return { month: name, revenue: found ? found.revenue : 0 };
+    });
 
     res.json({
       success: true,
@@ -129,7 +161,8 @@ const getDashboardStats = async (req, res) => {
         orderStatuses,
         lowStockProducts,
         recentOrders: formattedRecentOrders,
-        topProducts
+        topProducts,
+        monthlyRevenue
       }
     });
 
@@ -139,4 +172,43 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-export { getDashboardStats };
+// Public endpoint: Top 5 best sellers for Frontend (no auth required)
+const getPublicBestSellers = async (req, res) => {
+  try {
+    const topProductsRaw = await aggregateBestSellers(5);
+
+    // Enrich with current product data (price, category, full images)
+    const productIds = topProductsRaw
+      .map(item => item._id)
+      .filter(id => id); // filter out nulls
+
+    const productsFromDB = await productModel.find(
+      { _id: { $in: productIds } },
+      { name: 1, price: 1, image: 1, category: 1 }
+    );
+
+    const productMap = {};
+    productsFromDB.forEach(p => {
+      productMap[p._id.toString()] = p;
+    });
+
+    const bestSellers = topProductsRaw.map(item => {
+      const dbProduct = item._id ? productMap[item._id.toString()] : null;
+      return {
+        _id: dbProduct?._id || null,
+        name: dbProduct?.name || item.name,
+        price: dbProduct?.price || 0,
+        image: dbProduct?.image || (item.image ? [item.image] : []),
+        category: dbProduct?.category || "",
+        totalSold: item.totalQuantity,
+      };
+    }).filter(item => item._id); // only include products that still exist
+
+    res.json({ success: true, bestSellers });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export { getDashboardStats, getPublicBestSellers };

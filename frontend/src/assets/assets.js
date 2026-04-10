@@ -80,7 +80,6 @@ export const products = [
         subCategory: "T-shirt",
         sizes: ["S", "M", "L"],
         date: 1716634345448,
-        bestseller: true
     },
     {
         _id: "aaaab",
@@ -92,7 +91,6 @@ export const products = [
         subCategory: "Hoodie",
         sizes: ["M", "L", "XL"],
         date: 1716621345448,
-        bestseller: true
     },
     {
         _id: "aaaac",
@@ -104,7 +102,6 @@ export const products = [
         subCategory: "Hoodie",
         sizes: ["S", "L", "XL"],
         date: 1716234545448,
-        bestseller: true
     },
     {
         _id: "aaaad",
@@ -116,7 +113,6 @@ export const products = [
         subCategory: "T-shirt",
         sizes: ["S", "M", "XXL"],
         date: 1716621345448,
-        bestseller: true
     },
     {
         _id: "aaaae",
@@ -128,7 +124,6 @@ export const products = [
         subCategory: "Sweater",
         sizes: ["M", "L", "XL"],
         date: 1716622345448,
-        bestseller: true
     },
     {
         _id: "aaaaf",
@@ -140,7 +135,6 @@ export const products = [
         subCategory: "Jacket",
         sizes: ["S", "L", "XL"],
         date: 1716623423448,
-        bestseller: true
     },
     {
         _id: "aaaag",
@@ -152,7 +146,6 @@ export const products = [
         subCategory: "Hoodie",
         sizes: ["S", "L", "XL"],
         date: 1716621542448,
-        bestseller: false
     },
     {
         _id: "aaaah",
@@ -164,7 +157,6 @@ export const products = [
         subCategory: "Hoodie",
         sizes: ["S", "M", "L", "XL"],
         date: 1716622345448,
-        bestseller: false
     },
     {
         _id: "aaaai",
@@ -176,7 +168,6 @@ export const products = [
         subCategory: "Jacket",
         sizes: ["M", "L", "XL"],
         date: 1716621235448,
-        bestseller: false
     },
     {
         _id: "aaaaj",
@@ -188,7 +179,6 @@ export const products = [
         subCategory: "Hoodie",
         sizes: ["S", "L", "XL"],
         date: 1716622235448,
-        bestseller: false
     },
     {
         _id: "aaaak",
@@ -200,7 +190,6 @@ export const products = [
         subCategory: "Hoodie",
         sizes: ["S", "M", "L"],
         date: 1716623345448,
-        bestseller: false
     },
     {
         _id: "aaaal",
@@ -212,7 +201,6 @@ export const products = [
         subCategory: "T-shirt",
         sizes: ["S", "M", "L", "XL"],
         date: 1716624445448,
-        bestseller: false
     },
     {
         _id: "aaaam",
@@ -224,7 +212,6 @@ export const products = [
         subCategory: "Jacket",
         sizes: ["S", "M", "L", "XL"],
         date: 1716625545448,
-        bestseller: false
     },
     {
         _id: "aaaan",
@@ -236,7 +223,6 @@ export const products = [
         subCategory: "Jacket",
         sizes: ["S", "M", "L", "XL"],
         date: 1716626645448,
-        bestseller: false
     },
     {
         _id: "aaaao",
@@ -248,7 +234,6 @@ export const products = [
         subCategory: "Sweater",
         sizes: ["S", "M", "L", "XL"],
         date: 1716627745448,
-        bestseller: false
     },
     {
         _id: "aaaap",
@@ -257,10 +242,9 @@ export const products = [
         price: 1867420,
         image: [p_img16],
         category: "Men",
-        subCategory: "Hoddie",
+        subCategory: "Hoodie",
         sizes: ["S", "M", "L", "XL"],
         date: 1716628845448,
-        bestseller: false
     },
     {
         _id: "aaaaq",
@@ -272,7 +256,6 @@ export const products = [
         subCategory: "Kit",
         sizes: ["S", "M", "L", "XL"],
         date: 1716629945448,
-        bestseller: false
     },
     {
         _id: "aaaar",
@@ -284,7 +267,6 @@ export const products = [
         subCategory: "Kit",
         sizes: ["S", "M", "L", "XL"],
         date: 1716631045448,
-        bestseller: false
     },
     {
         _id: "aaaas",
@@ -296,7 +278,6 @@ export const products = [
         subCategory: "Polo",
         sizes: ["S", "M", "L", "XL"],
         date: 1716632145448,
-        bestseller: false
     },
     {
         _id: "aaaat",
@@ -308,7 +289,6 @@ export const products = [
         subCategory: "T-shirt",
         sizes: ["S", "M", "L", "XL"],
         date: 1716633245448,
-        bestseller: false
     },
     {
         _id: "aaaau",
@@ -320,7 +300,6 @@ export const products = [
         subCategory: "Kit",
         sizes: ["S", "M", "L", "XL"],
         date: 1716634345448,
-        bestseller: false
     },
     {
         _id: "aaaav",
@@ -332,7 +311,6 @@ export const products = [
         subCategory: "Kit",
         sizes: ["S", "M", "L", "XL"],
         date: 1716635445448,
-        bestseller: false
     },
     {
         _id: "aaaaw",
@@ -344,7 +322,6 @@ export const products = [
         subCategory: "Hoodie",
         sizes: ["S", "M", "L", "XL"],
         date: 1716636545448,
-        bestseller: false
     },
     {
         _id: "aaaax",
@@ -356,7 +333,6 @@ export const products = [
         subCategory: "Hoodie",
         sizes: ["S", "M", "L", "XL"],
         date: 1716637645448,
-        bestseller: false
     },
     {
         _id: "aaaay",
@@ -368,7 +344,6 @@ export const products = [
         subCategory: "T-shirt",
         sizes: ["S", "M", "L", "XL"],
         date: 1716638745448,
-        bestseller: false
     },
     {
         _id: "aaaaz",
@@ -380,7 +355,6 @@ export const products = [
         subCategory: "T-shirt",
         sizes: ["S", "M", "L", "XL"],
         date: 1716639845448,
-        bestseller: false
     },
     {
         _id: "aaaba",
@@ -392,7 +366,6 @@ export const products = [
         subCategory: "T-shirt",
         sizes: ["S", "M", "L", "XL"],
         date: 1716640945448,
-        bestseller: false
     },
     {
         _id: "aaabb",
@@ -404,6 +377,5 @@ export const products = [
         subCategory: "Kit",
         sizes: ["S", "M", "L", "XL"],
         date: 1716642045448,
-        bestseller: false
     },
 ]

@@ -77,8 +77,10 @@ const Order = ({ token }) => {
               <div>
                 <p>{order.address.street + ","}</p>
                 <p>
-                  {order.address.city + ", " +
-                    order.address.state
+                  {[order.address.ward, order.address.province]
+                    .filter(Boolean)
+                    .join(", ") ||
+                    [order.address.city, order.address.state].filter(Boolean).join(", ")
                   }
                 </p>
               </div>

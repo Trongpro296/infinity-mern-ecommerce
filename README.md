@@ -39,21 +39,23 @@
 - Tìm kiếm và lọc sản phẩm theo thời gian thực
 - Quản lý giỏ hàng (thêm / cập nhật / xoá)
 - Quy trình đặt hàng (checkout) hoàn chỉnh với kiểm tra tồn kho thời gian thực
+- **Form địa chỉ giao hàng thông minh** — cascading dropdown 2 cấp tích hợp [Vietnam Provinces API v2](https://provinces.open-api.vn): chọn Tỉnh/Thành phố → Phường/Xã tự động load theo
 - Áp dụng **mã giảm giá voucher** khi thanh toán (giảm 20%)
 - Đăng ký nhận **bản tin (Newsletter)** để nhận mã voucher **BARCA20**
 - Theo dõi lịch sử đơn hàng cá nhân
+- **Sản phẩm bán chạy (Best Sellers) động** — trang chủ hiển thị top 5 dựa trên dữ liệu bán hàng thực tế từ API, không dùng boolean flag cứng
 - Thiết kế responsive, tương thích mọi thiết bị
 
 ### 🔧 Bảng quản trị (Admin)
 - Xác thực quản trị viên riêng biệt
-- **Bảng thống kê (Dashboard)** — Tổng quan doanh thu, đơn hàng, người dùng với tăng trưởng theo tháng (MoM); phân bố trạng thái đơn hàng & 10 đơn gần nhất
+- **Bảng thống kê (Dashboard)** — Tổng quan doanh thu, đơn hàng, người dùng với tăng trưởng theo tháng (MoM); phân bố trạng thái đơn hàng & 10 đơn gần nhất; **biểu đồ cột doanh thu theo tháng trong năm** (Recharts, chỉ tính đơn "Delivered")
 - **Quản lý sản phẩm** — Thêm, sửa, xoá sản phẩm kèm upload nhiều ảnh
 - **Nhập thêm hàng (Restock)** — Bổ sung số lượng tồn kho theo từng size trực tiếp từ trang quản lý
 - **Cảnh báo tồn kho thấp** — Hiển thị danh sách sản phẩm sắp hết hàng (tổng tồn kho < 10, tính theo variant size)
-- **Quản lý danh mục** — Tạo và tổ chức danh mục sản phẩm
-- **Quản lý đơn hàng** — Xem tất cả đơn, cập nhật trạng thái (enum validation) và **tự động hoàn lại kho** khi huỷ đơn
-- **Quản lý người dùng** — Xem danh sách tất cả tài khoản, khoá/mở khoá (Active/Blocked), xoá người dùng (cascade: đơn hàng & đăng ký bản tin)
-- **Top sản phẩm bán chạy** — Thống kê 5 sản phẩm bán chạy nhất theo doanh số
+- **Quản lý danh mục** — Tạo và tổ chức danh mục sản phẩm; **tự động sắp xếp theo doanh thu** — MongoDB aggregation pipeline tính on-the-fly từ đơn "Delivered", không lưu field doanh thu vào DB
+- **Quản lý đơn hàng** — Xem tất cả đơn, cập nhật trạng thái (enum validation; hỗ trợ ID số 1–6 cho Postman) và **tự động hoàn lại kho** khi huỷ đơn
+- **Quản lý người dùng** — **Tìm kiếm server-side** theo tên/email (debounce 400ms), **phân trang server-side** (10 user/trang), cột **Tổng chi tiêu (Total Spent) có thể click để sắp xếp** tăng/giảm, khoá/mở khoá (Active/Blocked), xoá người dùng cascade
+- **Top sản phẩm bán chạy** — Thống kê 5 sản phẩm bán chạy nhất theo doanh số (dùng chung với public endpoint)
 
 ### ⚡ Backend API
 - API RESTful với Express 5
@@ -63,7 +65,11 @@
 - **Tính giá phía server** — Giá sản phẩm luôn được lấy từ DB, không tin dữ liệu từ client (chống giả mạo giá)
 - **Hệ thống voucher** — Validate 2 lớp (khi apply & khi đặt hàng), liên kết theo tài khoản, mỗi user chỉ dùng 1 lần
 - **Quản lý tồn kho nguyên tử (Atomic)** — Trừ kho bằng MongoDB `$inc` có điều kiện để tránh race condition; hoàn kho khi admin huỷ đơn
-- **Enum validation trạng thái** — Order status & user status chỉ chấp nhận các giá trị được định nghĩa sẵn
+- **Enum validation trạng thái** — Order status & user status chỉ chấp nhận các giá trị được định nghĩa sẵn; hỗ trợ payload mapping (số 1–6 → chuỗi enum) tiện cho Postman
+- **Server-side user search & pagination** — `GET /api/user/list` dùng MongoDB `$lookup + $facet + $regex` trong một pipeline duy nhất để search, tính `totalSpent`, phân trang và sort
+- **Dynamic category sorting** — `GET /api/category/list` aggregation join collection `orders`, tính doanh thu on-the-fly, trả về danh mục đã sort (không lưu field revenue vào DB)
+- **Public best-sellers endpoint** — `GET /api/dashboard/best-sellers` không cần xác thực, dùng chung hàm `aggregateBestSellers` với dashboard admin
+- **Monthly revenue chart data** — Dashboard trả về doanh thu 12 tháng trong năm (chỉ tính đơn "Delivered") cho biểu đồ Recharts
 - Xác thực đầu vào & xử lý lỗi
 
 ## 🛠 Công nghệ sử dụng
@@ -79,6 +85,8 @@
 | **Axios** | Thư viện gọi HTTP |
 | **React Toastify** | Thông báo dạng toast |
 | **React Icons** | Thư viện biểu tượng |
+| **Recharts** | Biểu đồ doanh thu tháng — Admin Dashboard |
+| **Vietnam Provinces API v2** | Dữ liệu Tỉnh/Thành phố & Phường/Xã cho form checkout |
 
 ### Backend
 
@@ -231,7 +239,7 @@ Sau khi khởi chạy thành công cả 3 máy chủ:
 | `POST` | `/api/user/register` | — | Đăng ký tài khoản mới |
 | `POST` | `/api/user/login` | — | Đăng nhập & nhận JWT token |
 | `POST` | `/api/user/admin` | — | Đăng nhập quyền Admin |
-| `GET` | `/api/user/list` | 🔒 Admin | Lấy danh sách tất cả người dùng (ẩn password) |
+| `GET` | `/api/user/list` | 🔒 Admin | Lấy danh sách người dùng với tìm kiếm server-side, phân trang & tổng chi tiêu. Query params: `search`, `page`, `limit`, `sortOrder` (`asc`\|`desc`) |
 | `POST` | `/api/user/status` | 🔒 Admin | Cập nhật trạng thái tài khoản (`Active` / `Blocked`) |
 | `POST` | `/api/user/delete` | 🔒 Admin | Xoá người dùng & toàn bộ đơn hàng, đăng ký bản tin liên quan |
 
@@ -249,7 +257,7 @@ Sau khi khởi chạy thành công cả 3 máy chủ:
 
 | Phương thức | Endpoint | Quyền | Mô tả |
 |---|---|---|---|
-| `GET` | `/api/category/list` | — | Lấy danh sách tất cả danh mục |
+| `GET` | `/api/category/list` | — | Lấy danh sách danh mục **đã sắp xếp theo doanh thu** (MongoDB aggregation on-the-fly từ đơn "Delivered") |
 | `POST` | `/api/category/add` | 🔒 Admin | Thêm danh mục mới |
 | `POST` | `/api/category/remove` | 🔒 Admin | Xoá danh mục |
 
@@ -269,7 +277,7 @@ Sau khi khởi chạy thành công cả 3 máy chủ:
 | `POST` | `/api/order/apply-voucher` | 🔒 User | Kiểm tra & áp dụng mã voucher |
 | `POST` | `/api/order/userorders` | 🔒 User | Xem lịch sử đơn hàng cá nhân |
 | `POST` | `/api/order/list` | 🔒 Admin | Xem tất cả đơn hàng |
-| `POST` | `/api/order/status` | 🔒 Admin | Cập nhật trạng thái (tự động hoàn kho khi huỷ) |
+| `POST` | `/api/order/status` | 🔒 Admin | Cập nhật trạng thái (tự động hoàn kho khi huỷ); hỗ trợ chuỗi enum hoặc số 1–6 (Postman-friendly) |
 
 ### Bản tin (Newsletter)
 
@@ -281,7 +289,8 @@ Sau khi khởi chạy thành công cả 3 máy chủ:
 
 | Phương thức | Endpoint | Quyền | Mô tả |
 |---|---|---|---|
-| `GET` | `/api/dashboard/stats` | 🔒 Admin | Tổng quan: doanh thu, đơn hàng, người dùng, tăng trưởng MoM, phân bố trạng thái, tồn kho thấp, 10 đơn gần nhất, top 5 sản phẩm bán chạy |
+| `GET` | `/api/dashboard/stats` | 🔒 Admin | Tổng quan: doanh thu, đơn hàng, người dùng, tăng trưởng MoM, biểu đồ doanh thu 12 tháng, phân bố trạng thái, tồn kho thấp, 10 đơn gần nhất, top 5 sản phẩm |
+| `GET` | `/api/dashboard/best-sellers` | — | Top 5 sản phẩm bán chạy (public, không cần xác thực) — dùng cho trang chủ frontend |
 
 > 🔒 **Yêu cầu xác thực**: Gửi kèm `token` trong header của request.
 > ⚙️ **Tuỳ chọn**: Có thể gọi khi chưa đăng nhập; nếu đã đăng nhập, voucher sẽ được liên kết với tài khoản.
@@ -325,7 +334,7 @@ infinity-mern-ecommerce/
 │       │   ├── Collection.jsx   #   Danh sách sản phẩm
 │       │   ├── Product.jsx      #   Chi tiết sản phẩm
 │       │   ├── Cart.jsx         #   Giỏ hàng
-│       │   ├── PlaceOrder.jsx   #   Đặt hàng / Checkout (áp dụng voucher)
+│       │   ├── PlaceOrder.jsx   #   Đặt hàng / Checkout (áp dụng voucher, dropdown tỉnh thành)
 │       │   ├── Orders.jsx       #   Lịch sử đơn hàng
 │       │   ├── Login.jsx        #   Đăng nhập / Đăng ký
 │       │   └── ...
@@ -339,7 +348,7 @@ infinity-mern-ecommerce/
 │       │   ├── SideBar.jsx      #   Thanh bên điều hướng
 │       │   └── Login.jsx        #   Đăng nhập admin
 │       └── pages/
-│           ├── Dashboard.jsx    #   Bảng thống kê tổng quan
+│           ├── Dashboard.jsx    #   Bảng thống kê tổng quan (biểu đồ doanh thu)
 │           ├── Add.jsx          #   Thêm sản phẩm mới
 │           ├── List.jsx         #   Quản lý & nhập thêm hàng (restock)
 │           ├── Order.jsx        #   Quản lý đơn hàng

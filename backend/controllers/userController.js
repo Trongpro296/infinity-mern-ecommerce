@@ -99,11 +99,50 @@ const adminLogin = async (req, res) => {
   }
 };
 
-// Route for Admin to get all users
+// Route for Admin to get all users with total spending, search & pagination
 const getAllUsers = async (req, res) => {
   try {
-    const users = await userModel.find({}).select("-password");
-    res.json({ success: true, users });
+    const { search = "", page = 1, limit = 10, sortOrder = "desc" } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const sortDir = sortOrder === "asc" ? 1 : -1;
+    const pipeline = [];
+
+    // Server-side search: filter before expensive $lookup
+    if (search) {
+      const regex = { $regex: search, $options: "i" };
+      pipeline.push({ $match: { $or: [{ name: regex }, { email: regex }] } });
+    }
+
+    pipeline.push(
+      // Join orders — pipeline form handles ObjectId vs String mismatch
+      {
+        $lookup: {
+          from: "orders",
+          let: { uid: { $toString: "$_id" } },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$userId", "$$uid"] } } },
+            { $project: { amount: 1 } },
+          ],
+          as: "orders",
+        },
+      },
+      { $addFields: { totalSpent: { $sum: "$orders.amount" } } },
+      { $project: { password: 0, orders: 0, cartData: 0 } },
+      { $sort: { totalSpent: sortDir } },
+      // $facet: get paginated data + total count in one query
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: parseInt(limit) }],
+          total: [{ $count: "count" }],
+        },
+      }
+    );
+
+    const [result] = await userModel.aggregate(pipeline);
+    const users = result?.data || [];
+    const total = result?.total[0]?.count || 0;
+
+    res.json({ success: true, users, total });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });

@@ -38,6 +38,7 @@ const placeOrder = async (req, res) => {
       // Use price from DB — ignore any price sent by client
       item.price = productData.price;
       if (!item.image) item.image = productData.image;
+      item.category = productData.category;
 
       const currentStock = productData.sizesStock && productData.sizesStock[item.size] !== undefined
         ? productData.sizesStock[item.size]

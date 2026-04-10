@@ -6,6 +6,7 @@ import List from "./pages/List";
 import Order from "./pages/Order";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
+import Categories from "./pages/Categories";
 import { useEffect, useState } from "react";
 import Login from "./components/Login";
 import { ToastContainer } from "react-toastify";
@@ -37,6 +38,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Dashboard token={token} />} />
                 <Route path="/add" element={<Add token={token} />} />
+                <Route path="/categories" element={<Categories token={token} />} />
                 <Route path="/list" element={<List token={token} />} />
                 <Route path="/order" element={<Order token={token} />} />
                 <Route path="/user" element={<Users token={token} />} />

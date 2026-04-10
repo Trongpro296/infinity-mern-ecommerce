@@ -3,6 +3,7 @@ import axios from "axios";
 import { backendUrl } from "../App";
 import { formatPrice } from "../utils/formatPrice";
 import { toast } from "react-toastify";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 // Helper to render growth indicators
 const GrowthBadge = ({ value }) => {
@@ -96,6 +97,24 @@ const Dashboard = ({ token }) => {
             </div>
             {stats.orderStatuses['Cancelled'] > 0 && (
               <p className="text-sm text-red-500 mt-4 text-right">⚠️ {stats.orderStatuses['Cancelled']} Orders Cancelled</p>
+            )}
+          </div>
+
+          {/* Monthly Revenue Chart */}
+          <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-lg font-bold mb-4 text-gray-800">Monthly Revenue ({new Date().getFullYear()})</h2>
+            {stats.monthlyRevenue && stats.monthlyRevenue.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={stats.monthlyRevenue} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#6b7280' }} />
+                  <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} tickFormatter={(v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
+                  <Tooltip formatter={(value) => [formatPrice(value), 'Revenue']} labelStyle={{ fontWeight: 'bold' }} contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }} />
+                  <Bar dataKey="revenue" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-10 text-gray-400 text-sm">No revenue data for this year.</div>
             )}
           </div>
 
